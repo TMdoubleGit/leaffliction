@@ -1,9 +1,12 @@
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Rescaling
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
+import sys
+import os
 import tensorflow as tf
 
-import sys
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Rescaling
+
+from .augmentation import augment_dataset
+# from .transformation import transform_dataset
 
 def train(dataset_path):
 
@@ -22,18 +25,18 @@ def train(dataset_path):
         metrics=['accuracy'])
 
     # generer la data de training
-    train_data = tf.keras.utils.image_dataset_from_directory(
+    train_dataset = tf.keras.utils.image_dataset_from_directory(
         dataset_path,
         labels='inferred',  # label par sous dossiers (8)
-        label_mode='categorical',  # encodage one-hot
-        image_size=(128, 128),  # a checker
+        label_mode='categorical',
+        image_size=(128, 128),  # 128 OU 256 ?????????????????
         batch_size=32,
         validation_split=0.2,
         subset='training',
     )
 
     # generer la data de validation
-    validation_data = tf.keras.utils.image_dataset_from_directory(
+    validation_dataset = tf.keras.utils.image_dataset_from_directory(
         dataset_path,
         labels='inferred',
         label_mode='categorical',
@@ -48,10 +51,23 @@ def train(dataset_path):
     train_dataset = train_dataset.map(lambda x, y: (normalization_layer(x), y))
     val_dataset = val_dataset.map(lambda x, y: (normalization_layer(x), y))
 
-    model.fit(
-        train_data,
-        validation_data=validation_data,
+    training_metrics = model.fit(
+        train_dataset,
+        validation_data=validation_dataset,
         epochs=100)
+    
+    print(f"========== Training metrics ==========\n", +
+            f"loss: {training_metrics.history['loss']}\n" +
+            f"accuracy: {training_metrics.history['accuracy']}\n" +
+            f"\n========== Validation metrics ==========\n", +
+            f"val_loss: {training_metrics.history['val_loss']}\n" +
+            f"val_accuracy: {training_metrics.history['val_accuracy']}\n"
+    )
+
+    # PATH a modifier avant EVALUATION
+    if not os.path.exists('./augmented_directory/saved_model'):
+        os.makedirs('./augmented_directory/saved_model')
+    model.save('./augmented_directory/saved_model/leafflication')
 
 
 if __name__ == "__main__":
@@ -61,4 +77,10 @@ if __name__ == "__main__":
         sys.exit(1)
 
     dataset_path = sys.argv[1]
+
+    # LIGNES a SUPPRIMER avant EVALUATION
+    augment_dataset(dataset_path, "augmented_directory")
+    # transform_dataset(dataset_path, "augmented_directory")
+    # ZIP le doss avec le shasum une fois fini
+
     train(dataset_path)
