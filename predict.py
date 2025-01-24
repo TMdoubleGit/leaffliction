@@ -35,7 +35,7 @@ def load_and_preprocess_image(image_path):
 
 
 def predict_image(image_path):
-    model = load_model('./augmented_directory/leafflication')
+    model = load_model('./augmented_directory/saved_model/leafflication')
 
     img_array = load_and_preprocess_image(image_path)
     
@@ -65,7 +65,7 @@ def predict(image_path):
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print("Error: You must provide the image path as an argument.")
-        print("Usage: python train.py <image_path>")
+        print("Usage: python predict.py <image_path>")
         sys.exit(1)
 
     image_path = sys.argv[1]
