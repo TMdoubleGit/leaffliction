@@ -1,5 +1,6 @@
 tensorflow==2.18
 numpy==1.26.0
 matplotlib==3.8.0
-opencv-python==4.10.0.84
+opencv-python-headless==4.10.0.84
 Pillow==10.0.0
+plantcv==4.6
