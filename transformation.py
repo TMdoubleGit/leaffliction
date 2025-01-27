@@ -25,28 +25,44 @@ def apply_transformations(image_path):
     transformed_images.append(image)
     titles.append("Original")
 
-    ####################### BLUR #######################
-    blur = pcv.gaussian_blur(img=image, ksize=(7, 7), sigma_x=0)
-    transformed_images.append(blur)
-    titles.append("Gaussian Blur")
+    ####################### BINARY THRESHOLD #######################
+    gray_img = pcv.rgb2gray(rgb_img=image)
+    binary_img = pcv.threshold.binary(gray_img=gray_img, threshold=128, object_type="light")
+    inverted_img = pcv.invert(binary_img)
+    transformed_images.append(inverted_img)
+    titles.append("Binary Threshold")
 
-    ####################### GRAYSCALE MASK #######################
-    mask = pcv.threshold.binary(gray_img=pcv.rgb2gray(rgb_img=image), threshold=128, object_type="light")
-    transformed_images.append(mask)
+    ####################### MASK #######################
+    gray_img = pcv.rgb2gray(rgb_img=image)
+    binary_mask = pcv.threshold.binary(gray_img=gray_img, threshold=128, object_type="light")
+    masked_image = cv2.bitwise_and(image, image, mask=binary_mask)
+    white_background = np.ones_like(image) * 255
+    gray_threshold = 80
+    background_mask = np.all(image > gray_threshold, axis=2)
+    final_mask = np.logical_or(binary_mask == 255, background_mask)
+    colored_mask = np.where(final_mask[:, :, None], white_background, image)
+    transformed_images.append(colored_mask)
     titles.append("Mask")
 
     ####################### ROI #######################
-    roi = pcv.roi.rectangle(img=image, x=50, y=50, h=150, w=150)
-    roi_objects, hierarchy = pcv.find_objects(img=mask, mask=roi["roi"])
-    roi_img = pcv.visualize_objects(img=image, contours=roi_objects)
-    transformed_images.append(roi_img)
-    titles.append("ROI objects")
+    # roi_result = pcv.roi.rectangle(img=image, x=50, y=50, h=150, w=150)
+    # roi_contour = roi_result.contours
+    # roi_hierarchy = roi_result.hierarchy
+    # kept_mask = pcv.apply_mask(img=image, mask=roi_contour, mask_color="black")
+    # roi_render = image.copy()
+    # if isinstance(roi_contour, list):
+    #     cv2.drawContours(image=roi_render, contours=roi_contour, contourIdx=-1, color=(255, 0, 0), thickness=2)
+    # else:
+    #     cv2.drawContours(image=roi_render, contours=[roi_contour], contourIdx=-1, color=(255, 0, 0), thickness=2)
 
-    ####################### CONTOURS #######################
-    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    contour_img = cv2.drawContours(image.copy(), contours, -1, (0, 255, 0), 2)
-    transformed_images.append(cv2.cvtColor(contour_img, cv2.COLOR_BGR2RGB))
-    titles.append("Analyze object")
+    # transformed_images.append(roi_render)
+    # titles.append("ROI Objects")
+
+    # ####################### CONTOURS #######################
+    # contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # contour_img = cv2.drawContours(image.copy(), contours, -1, (0, 255, 0), 2)
+    # transformed_images.append(cv2.cvtColor(contour_img, cv2.COLOR_BGR2RGB))
+    # titles.append("Analyze object")
 
     ####################### PSEUDOLANDMARKS #######################
     sift = cv2.SIFT_create()
@@ -59,7 +75,6 @@ def apply_transformations(image_path):
     ####################### COLOR HISTOGRAM #######################
     histograms = plot_color_histogram(image)
 
-    # Display transformations and histogram
     display_transformations(transformed_images, titles, histograms)
 
 
