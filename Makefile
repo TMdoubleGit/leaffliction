@@ -2,7 +2,7 @@ python := python3
 
 define venvWrapper
 	{\
-	. bin/activate; \
+	. .venv/bin/activate; \
 	$1; \
 	}
 endef
@@ -11,8 +11,8 @@ endef
 install:
 	@{ \
 		echo "Setting up..."; \
-		python3 -m venv .; \
-		. bin/activate; \
+		python3 -m venv .venv; \
+		. .venv/bin/activate; \
 		if [ -f requirements.txt ]; then \
 			pip install -r requirements.txt; \
 			echo "Installing dependencies...DONE"; \
@@ -44,7 +44,7 @@ clean:
 
 
 fclean: clean
-	@rm -rf bin/ include/ lib/ lib64 pyvenv.cfg share/
+	@rm -rf .venv/ .venv/bin/ .venv/include/ .venv/lib/ .venv/lib64 .venv/pyvenv.cfg .venv/share/
 	@rm -rf ./data
 
 phony: install freeze process train predict

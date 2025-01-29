@@ -45,18 +45,24 @@ def apply_transformations(image_path):
     titles.append("Mask")
 
     ####################### ROI #######################
-    # roi_result = pcv.roi.rectangle(img=image, x=50, y=50, h=150, w=150)
-    # roi_contour = roi_result.contours
-    # roi_hierarchy = roi_result.hierarchy
-    # kept_mask = pcv.apply_mask(img=image, mask=roi_contour, mask_color="black")
-    # roi_render = image.copy()
-    # if isinstance(roi_contour, list):
-    #     cv2.drawContours(image=roi_render, contours=roi_contour, contourIdx=-1, color=(255, 0, 0), thickness=2)
-    # else:
-    #     cv2.drawContours(image=roi_render, contours=[roi_contour], contourIdx=-1, color=(255, 0, 0), thickness=2)
+    binary_mask = pcv.threshold.binary(gray_img=gray_img, threshold=128, object_type="light")
+    binary_mask = pcv.invert(binary_mask)
+    roi_contour = pcv.roi.rectangle(img=image, x=0, y=0, h=255, w=255)
+    filtered_mask = pcv.roi.filter(mask=binary_mask, roi=roi_contour, roi_type="partial")
 
-    # transformed_images.append(roi_render)
-    # titles.append("ROI Objects")
+    leaf_only_mask = cv2.bitwise_and(binary_mask, filtered_mask)
+
+    leaf_only_mask_colored = cv2.merge([leaf_only_mask, leaf_only_mask, leaf_only_mask])
+    green_overlay = np.zeros_like(image)
+    green_overlay[:, :, 1] = 255  
+    masked_roi_colored = np.where(leaf_only_mask_colored > 0, green_overlay, image)
+
+    roi_contour_to_draw  = roi_contour.contours[0]
+
+    cv2.drawContours(masked_roi_colored, roi_contour_to_draw, -1, (255, 0, 0), 2)
+
+    transformed_images.append(masked_roi_colored)
+    titles.append("ROI Objects")
 
     # ####################### CONTOURS #######################
     # contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -83,11 +89,9 @@ def plot_color_histogram(image):
     Generate color histogram data for multiple color channels.
     Returns histogram data and channel names for embedding in the global figure.
     """
-    # Convert image to additional color spaces
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     hls = cv2.cvtColor(image, cv2.COLOR_BGR2HLS)
 
-    # Create a dictionary of channels to process
     channels = {
         "blue": image[:, :, 0],
         "green": image[:, :, 1],
@@ -101,7 +105,7 @@ def plot_color_histogram(image):
     histograms = {}
     for name, channel in channels.items():
         hist = cv2.calcHist([channel], [0], None, [256], [0, 256])
-        histograms[name] = hist / hist.sum() * 100  # Normalize to percentage
+        histograms[name] = hist / hist.sum() * 100
 
     return histograms
 
@@ -110,20 +114,18 @@ def display_transformations(images, titles, histograms):
     """
     Display transformations and the color histogram in a single integrated figure.
     """
-    fig, axes = plt.subplots(3, 3, figsize=(15, 10))  # 3x3 grid for images + histogram
+    fig, axes = plt.subplots(3, 3, figsize=(15, 10))
     axes = axes.flatten()
 
-    # Display transformed images
     for i, (img, title) in enumerate(zip(images, titles)):
-        if len(img.shape) == 2:  # Grayscale image
+        if len(img.shape) == 2:
             axes[i].imshow(img, cmap="gray")
         else:
             axes[i].imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
         axes[i].set_title(title)
         axes[i].axis("off")
 
-    # Display histogram in the last slot
-    histogram_ax = axes[len(images)]  # Use the next available slot
+    histogram_ax = axes[len(images)]
     for name, hist in histograms.items():
         histogram_ax.plot(range(256), hist, label=name)
     histogram_ax.set_title("Color Histogram")
@@ -131,7 +133,6 @@ def display_transformations(images, titles, histograms):
     histogram_ax.set_ylabel("Proportion of Pixels (%)")
     histogram_ax.legend(loc="upper right", title="Color Channels")
 
-    # Hide any unused subplot axes
     for ax in axes[len(images) + 1:]:
         ax.axis("off")
 
