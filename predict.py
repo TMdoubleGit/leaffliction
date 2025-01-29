@@ -29,13 +29,15 @@ def display_prediction(image_path, predicted_class):
 
 def load_and_preprocess_image(image_path):
     img = Image.open(image_path).convert('RGB')
-    img = img.resize((128, 128))
     img_array = np.array(img) / 255.0
+
+    ########################3 transformation de l'image ###########################
+
     return np.expand_dims(img_array, axis=0)
 
 
 def predict_image(image_path):
-    model = load_model('./augmented_directory/saved_model/leafflication')
+    model = load_model('./saved_model/leafflication') ######################################################
 
     img_array = load_and_preprocess_image(image_path)
     

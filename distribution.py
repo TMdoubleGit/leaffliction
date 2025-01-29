@@ -12,7 +12,7 @@ def analyze_plant_dataset(dataset_path):
         print(f"Error: The specified path '{dataset_path}' does not exist or is not a directory.")
         sys.exit(1)
 
-    plant_name = os.path.basename(dataset_path)
+    directory_name = os.path.basename(dataset_path)
 
     category_counts = {}
     for disease in os.listdir(dataset_path):
@@ -35,7 +35,7 @@ def analyze_plant_dataset(dataset_path):
     color_map = plt.cm.tab20(np.linspace(0, 1, len(labels)))
 
     fig, axes = plt.subplots(1, 2, figsize=(16, 8))
-    fig.suptitle(f'{plant_name.capitalize()} Dataset Distribution')
+    fig.suptitle(f'{directory_name.capitalize()} Dataset Distribution')
 
     axes[0].pie(sizes, labels=labels, autopct='%1.1f%%', startangle=140, colors=color_map)
     axes[0].set_title('Pie Chart')
