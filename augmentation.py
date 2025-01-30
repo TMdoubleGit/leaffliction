@@ -6,8 +6,53 @@ import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
 
+#####################################################################################################
+#################################### pour le augmented directory ####################################
+#####################################################################################################
+def count_images_in_folders(input_directory, valid_extensions={'.jpg', '.jpeg', '.png'}):
+    """
+    Compte le nombre d'images dans chaque sous-dossier et retourne un dictionnaire {sous_dossier: nombre_d_images}.
+    """
+    folder_counts = {}
 
-def augment_dataset(input_directory, augmented_root):
+    for root, dirs, files in os.walk(input_directory):
+        # Ignorer le dossier racine et ne garder que les sous-dossiers
+        relative_path = os.path.relpath(root, input_directory)
+        parts = relative_path.split(os.sep)
+
+        if len(parts) > 1:  # S'assurer qu'on est bien dans un sous-dossier
+            image_count = sum(1 for f in files if os.path.splitext(f)[1].lower() in valid_extensions)
+            if image_count > 0:  # Ne pas inclure les dossiers vides
+                folder_counts[root] = image_count
+
+    return folder_counts
+
+def balance_dataset(input_directory):
+    """
+    Équilibre les sous-dossiers en ajoutant des images augmentées jusqu'à atteindre le nombre max d'images.
+    """
+    folder_counts = count_images_in_folders(input_directory)
+    print(folder_counts)
+    max_images = max(folder_counts.values())  # Le plus grand nombre d'images dans un sous-dossier
+
+    for folder, count in folder_counts.items():
+        if count < max_images:
+            images = [os.path.join(folder, f) for f in os.listdir(folder)]
+            num_to_add = max_images - count
+
+            print(f"📢 Augmenting {folder}: Adding {num_to_add} images to reach {max_images}")
+
+            while num_to_add > 0:
+                for img_path in images:
+                    augment_image(img_path)
+                    num_to_add -= 6
+                    if num_to_add <= 0:
+                        break
+
+    print("✅ Dataset équilibré avec succès !")
+
+
+def augment_dataset(input_directory="./dataset", augmented_root="augmented_directory"):
     """
     Apply augmentations to all images in a directory and replicate the directory structure in augmented_root.
     :param input_directory: Root directory containing the original dataset.
@@ -16,23 +61,28 @@ def augment_dataset(input_directory, augmented_root):
     if not os.path.exists(input_directory):
         raise FileNotFoundError(f"Error: The input directory '{input_directory}' does not exist.")
 
+    balance_dataset(input_directory)
+
     for root, dirs, files in os.walk(input_directory):
         relative_path = os.path.relpath(root, input_directory)
-        augmented_directory = os.path.join(augmented_root, relative_path)
 
-        if not os.path.exists(augmented_directory):
-            os.makedirs(augmented_directory)
+        parts = relative_path.split(os.sep)
+        if len(parts) > 1:  # Vérifie qu'on est bien dans un sous-dossier
+            relative_path = os.path.join(*parts[1:])
 
-        for filename in files:
-            image_path = os.path.join(root, filename)
-            if os.path.isfile(image_path):
-                augment_image(image_path, root)
+            augmented_directory = os.path.join(augmented_root, relative_path)
 
-                for img_file in os.listdir(root):
-                    src = os.path.join(root, img_file)
-                    dst = os.path.join(augmented_directory, img_file)
-                    if os.path.isfile(src) and not os.path.exists(dst):
-                        shutil.copy(src, dst)
+            if not os.path.exists(augmented_directory):
+                os.makedirs(augmented_directory)
+
+            for img_file in os.listdir(root):
+                src = os.path.join(root, img_file)
+                dst = os.path.join(augmented_directory, img_file)
+                if os.path.isfile(src) and not os.path.exists(dst):
+                    shutil.copy(src, dst)
+#####################################################################################################
+#####################################################################################################
+#####################################################################################################
 
 
 def augment_image(image_path):
@@ -98,30 +148,30 @@ def augment_image(image_path):
     ####################################################
 
     ##mute pour creer le augmented_directory
-    fig, axes = plt.subplots(2, 3, figsize=(12, 8))
-    axes = axes.flatten()
+    # fig, axes = plt.subplots(2, 3, figsize=(12, 8))
+    # axes = axes.flatten()
 
-    for i, file_path in enumerate(augmented_files):
-        pil_image = Image.open(file_path)
-        axes[i].imshow(pil_image)
-        axes[i].set_title(os.path.basename(file_path))
-        axes[i].axis('off')
+    # for i, file_path in enumerate(augmented_files):
+    #     pil_image = Image.open(file_path)
+    #     axes[i].imshow(pil_image)
+    #     axes[i].set_title(os.path.basename(file_path))
+    #     axes[i].axis('off')
 
-    plt.tight_layout()
-    plt.show()
+    # plt.tight_layout()
+    # plt.show()
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Error: You must provide the input image.")
-        print("Usage: python augmentation.py <image_path>")
-        sys.exit(1)
+    # if len(sys.argv) != 2:
+    #     print("Error: You must provide the input image.")
+    #     print("Usage: python augmentation.py <image_path>")
+    #     sys.exit(1)
 
-    image_path = sys.argv[1]
+    # image_path = sys.argv[1]
 
     try:
-        augment_image(image_path) ## ligne pour la correction
-        # augment_dataset(input_dir, augmented_root) ## ligne pour creer le augmented_directory
+        # augment_image(image_path) ## ligne pour la correction
+        augment_dataset() ## ligne pour creer le augmented_directory
     except FileNotFoundError as e:
         print(e)
         sys.exit(1)

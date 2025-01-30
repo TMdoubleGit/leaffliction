@@ -23,3 +23,10 @@ SOLUTION : 1640 pour tous
 Pour transformation.py, est ce que l'extraction des characteristiques a vraiment une utilite pour la correction ?
 Est ce que la transformation est faite pour toutes les images originales + celles augmentees ?
 SOLUTION : OUI FORMAT UNE IMAGE POUR LES 1 + 5 IMAGES TRANSFORMEES
+
+
+A retourner dans le .zip :
+
+- augmented_directory (part2)
+- saved_model (part4)
+- increased/modified images (part4)
