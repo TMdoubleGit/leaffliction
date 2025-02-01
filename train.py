@@ -1,6 +1,7 @@
 import sys
 import os
 import tensorflow as tf
+import matplotlib as plt
 
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Rescaling
@@ -82,9 +83,7 @@ if __name__ == "__main__":
 
     dataset_path = sys.argv[1]
 
-    # LIGNES a SUPPRIMER avant EVALUATION
-    augment_dataset(dataset_path, "augmented_directory")
-    # transform_dataset(dataset_path, "augmented_directory")
-    # ZIP le doss avec le shasum une fois fini
+    augment_dataset(dataset_path, "dataset_training")
+    # transform_dataset("dataset_training")
 
-    train(dataset_path)
+    train("dataset_training")

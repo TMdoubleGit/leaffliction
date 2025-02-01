@@ -115,12 +115,21 @@ def augment_image(image_path):
     ######################################################
 
     ####################### CROP #######################
-    height, width = image.shape[:2]
-    crop = image[height // 4:3 * height // 4, width // 4:3 * width // 4]
-    crop_path = os.path.join(dir_name, f"{base_name}_Crop.jpg")
-    cv2.imwrite(crop_path, crop)
-    augmented_files.append(crop_path)
+    # height, width = image.shape[:2]
+    # crop = image[height // 4:3 * height // 4, width // 4:3 * width // 4]
+    # crop_path = os.path.join(dir_name, f"{base_name}_Crop.jpg")
+    # cv2.imwrite(crop_path, crop)
+    # augmented_files.append(crop_path)
     ####################################################
+
+    ####################### CONTRAST #######################
+    contrast = cv2.convertScaleAbs(image, alpha=1.5, beta=0)
+    contrast_path = os.path.join(dir_name, f"{base_name}_Contrast.jpg")
+    cv2.imwrite(contrast_path, contrast)
+    augmented_files.append(contrast_path)
+    ####################################################
+
+    height, width = image.shape[:2]
 
     ####################### SKEW #######################
     pts1 = np.float32([[0, 0], [width, 0], [0, height]])
@@ -148,30 +157,30 @@ def augment_image(image_path):
     ####################################################
 
     ##mute pour creer le augmented_directory
-    # fig, axes = plt.subplots(2, 3, figsize=(12, 8))
-    # axes = axes.flatten()
+    fig, axes = plt.subplots(2, 3, figsize=(12, 8))
+    axes = axes.flatten()
 
-    # for i, file_path in enumerate(augmented_files):
-    #     pil_image = Image.open(file_path)
-    #     axes[i].imshow(pil_image)
-    #     axes[i].set_title(os.path.basename(file_path))
-    #     axes[i].axis('off')
+    for i, file_path in enumerate(augmented_files):
+        pil_image = Image.open(file_path)
+        axes[i].imshow(pil_image)
+        axes[i].set_title(os.path.basename(file_path))
+        axes[i].axis('off')
 
-    # plt.tight_layout()
-    # plt.show()
+    plt.tight_layout()
+    plt.show()
 
 
 if __name__ == "__main__":
-    # if len(sys.argv) != 2:
-    #     print("Error: You must provide the input image.")
-    #     print("Usage: python augmentation.py <image_path>")
-    #     sys.exit(1)
+    if len(sys.argv) != 2:
+        print("Error: You must provide the input image.")
+        print("Usage: python augmentation.py <image_path>")
+        sys.exit(1)
 
-    # image_path = sys.argv[1]
+    image_path = sys.argv[1]
 
     try:
-        # augment_image(image_path) ## ligne pour la correction
-        augment_dataset() ## ligne pour creer le augmented_directory
+        augment_image(image_path) ## ligne pour la correction
+        # augment_dataset() ## ligne pour creer le augmented_directory
     except FileNotFoundError as e:
         print(e)
         sys.exit(1)

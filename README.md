@@ -1,7 +1,7 @@
 # leaffliction
 
 
-Taille dataset :
+## Taille dataset :
 
 apple_black_rot     620     ->      1640
 apple_healthy        1640  
@@ -13,7 +13,7 @@ grape_esca          1382     ->      1640
 grape_healthy       422      ->      1640
 grape_spot          1075     ->      1640
 
-Question ?
+## Question ?
 
 Pour augmentation.py, est ce que les dataset doivent etre parfaitement equilibre ?
 Est ce qu'il faut equilibrees les apples et les grapes par rapport au sous dossier qui a le + d'images OU il les equilibres par rapport a leur categorie 
@@ -25,8 +25,14 @@ Est ce que la transformation est faite pour toutes les images originales + celle
 SOLUTION : OUI FORMAT UNE IMAGE POUR LES 1 + 5 IMAGES TRANSFORMEES
 
 
-A retourner dans le .zip :
+## TODO :
+- changer crop dans augmentation (pb de taille) ✅
+- probleme avec contrast ❌
+
+
+## A retourner dans le .zip : 
 
 - augmented_directory (part2)
+- dataset 400 train / 100 validation (part 4)
 - saved_model (part4)
 - increased/modified images (part4)
