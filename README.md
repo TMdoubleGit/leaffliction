@@ -29,6 +29,9 @@ SOLUTION : OUI FORMAT UNE IMAGE POUR LES 1 + 5 IMAGES TRANSFORMEES
 - changer crop dans augmentation (pb de taille) ✅
 - probleme avec contrast ❌
 
+pour le predict : besoin d'une fonction par transformation
+pour le train : besoin d'une fonction de transformation de dataset
+
 
 ## A retourner dans le .zip : 
 

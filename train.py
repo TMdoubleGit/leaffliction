@@ -6,7 +6,7 @@ import matplotlib as plt
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Rescaling
 
-from .augmentation import augment_dataset
+# from .augmentation import augment_dataset
 # from .transformation import transform_dataset
 
 def plot_learning_curves(self, name, curves_train, curves_validation):
@@ -18,21 +18,6 @@ def plot_learning_curves(self, name, curves_train, curves_validation):
 
 def train(dataset_path):
 
-    # declaration d'un modele simple (5 couches)
-    model = Sequential([
-        Rescaling(1./255),
-        Conv2D(32, (3, 3), activation='relu'),
-        MaxPooling2D(2, 2),
-        Flatten(),
-        Dense(128, activation='relu'),
-        Dense(8, activation='softmax')
-    ])
-
-    model.compile(
-        optimizer='adam',
-        loss='categorical_crossentropy',
-        metrics=['accuracy'])
-
     # generer la data de training
     train_dataset = tf.keras.utils.image_dataset_from_directory(
         dataset_path,
@@ -41,6 +26,7 @@ def train(dataset_path):
         batch_size=32,
         validation_split=0.2,
         subset='training',
+        seed=42,
     )
 
     # generer la data de validation
@@ -51,14 +37,34 @@ def train(dataset_path):
         batch_size=32,
         validation_split=0.2,
         subset='validation',
+        seed=42,
     )
+
+    train_class_names = train_dataset.class_names
+    classes_number = len(train_class_names)
+
+    # declaration d'un modele simple (5 couches)
+    model = Sequential([
+        Rescaling(1./255),
+        Conv2D(32, (3, 3), activation='relu'),
+        MaxPooling2D(2, 2),
+        Flatten(),
+        Dense(128, activation='relu'),
+        Dense(classes_number, activation='softmax')
+    ])
+
+    model.compile(
+        optimizer='adam',
+        loss='categorical_crossentropy',
+        metrics=['accuracy'])
+
 
     training_metrics = model.fit(
         train_dataset,
         validation_data=validation_dataset,
-        epochs=10)
+        epochs=1)
     
-    print(f"========== Training metrics ==========\n", +
+    print(f"========== Training metrics ==========\n" +
             f"loss: {training_metrics.history['loss']}\n" +
             f"accuracy: {training_metrics.history['accuracy']}\n" +
             f"\n========== Validation metrics ==========\n", +
@@ -83,7 +89,9 @@ if __name__ == "__main__":
 
     dataset_path = sys.argv[1]
 
-    augment_dataset(dataset_path, "dataset_training")
+    # augment_dataset(dataset_path, "dataset_training")
     # transform_dataset("dataset_training")
 
-    train("dataset_training")
+    # partie ZIP
+
+    train(dataset_path)

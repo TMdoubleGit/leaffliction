@@ -10,9 +10,6 @@ import matplotlib.pyplot as plt
 #################################### pour le augmented directory ####################################
 #####################################################################################################
 def count_images_in_folders(input_directory, valid_extensions={'.jpg', '.jpeg', '.png'}):
-    """
-    Compte le nombre d'images dans chaque sous-dossier et retourne un dictionnaire {sous_dossier: nombre_d_images}.
-    """
     folder_counts = {}
 
     for root, dirs, files in os.walk(input_directory):
@@ -28,9 +25,6 @@ def count_images_in_folders(input_directory, valid_extensions={'.jpg', '.jpeg', 
     return folder_counts
 
 def balance_dataset(input_directory):
-    """
-    Équilibre les sous-dossiers en ajoutant des images augmentées jusqu'à atteindre le nombre max d'images.
-    """
     folder_counts = count_images_in_folders(input_directory)
     print(folder_counts)
     max_images = max(folder_counts.values())  # Le plus grand nombre d'images dans un sous-dossier
@@ -123,7 +117,7 @@ def augment_image(image_path):
     ####################################################
 
     ####################### CONTRAST #######################
-    contrast = cv2.convertScaleAbs(image, alpha=1.5, beta=0)
+    contrast = cv2.convertScaleAbs(image, alpha=2, beta=0)
     contrast_path = os.path.join(dir_name, f"{base_name}_Contrast.jpg")
     cv2.imwrite(contrast_path, contrast)
     augmented_files.append(contrast_path)
