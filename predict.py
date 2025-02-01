@@ -29,17 +29,30 @@ def display_prediction(image_path, predicted_class):
 
 def load_and_preprocess_image(image_path):
     img = Image.open(image_path).convert('RGB')
-    img = img.resize((128, 128))
     img_array = np.array(img) / 255.0
-    return np.expand_dims(img_array, axis=0)
+    img_array = np.expand_dims(img_array, axis=0)
+
+    ########################3 transformation de l'image ###########################
+
+    return img_array
 
 
 def predict_image(image_path):
-    model = load_model('./augmented_directory/saved_model/leafflication')
+    model = load_model('./saved_model/leafflication') ######################################################
 
     img_array = load_and_preprocess_image(image_path)
+    # blurred = preprocess_image(gaussian_blur(image_path))
+    # masked = preprocess_image(apply_mask(image_path))
+    # roi = preprocess_image(extract_roi(image_path))
+    
+    # batch = np.vstack([original, blurred, masked, roi])
     
     predictions = model.predict(img_array)
+    # predictions = model.predict(batch)
+
+    # avg_prediction = np.mean(predictions, axis=0)  # Moyenne des scores de confiance
+    # final_class = np.argmax(avg_prediction)  # Classe avec la plus haute confiance
+
     class_index = np.argmax(predictions)
     # confidence = predictions[0][class_index]
     
