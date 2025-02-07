@@ -166,6 +166,9 @@ if __name__ == "__main__":
     if os.path.isfile(input_path):
         apply_transformations_to_image(input_path, output_dir)
     elif os.path.isdir(input_path):
+        if not output_dir:
+            print("Error: When processing a directory, you must specify a destination directory with -dest.")
+            sys.exit(1)
         for file_name in os.listdir(input_path):
             file_path = os.path.join(input_path, file_name)
             if os.path.isfile(file_path) and file_path.lower().endswith(('.jpg', '.jpeg', '.png')):
