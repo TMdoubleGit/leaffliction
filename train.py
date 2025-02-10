@@ -4,7 +4,7 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Rescaling
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Rescaling, Dropout
 
 # from .augmentation import augment_dataset
 # from .transformation import transform_dataset
@@ -44,13 +44,30 @@ def train(dataset_path):
     classes_number = len(train_class_names)
 
     # declaration d'un modele simple (5 couches)
+    # model = Sequential([
+    #     Rescaling(1./255),
+    #     Conv2D(32, (3, 3), activation='relu'),
+    #     MaxPooling2D(2, 2),
+    #     Flatten(),
+    #     Dense(128, activation='relu'),
+    #     Dense(classes_number, activation='softmax')
+    # ])
+
     model = Sequential([
         Rescaling(1./255),
-        Conv2D(32, (3, 3), activation='relu'),
-        MaxPooling2D(2, 2),
+        Conv2D(filters=16, kernel_size=4, activation='relu'),
+        MaxPooling2D(),
+        Conv2D(filters=32, kernel_size=4, activation='relu'),
+        MaxPooling2D(),
+        Dropout(0.1),
+        Conv2D(filters=64, kernel_size=4, activation='relu'),
+        MaxPooling2D(),
+        Dropout(0.1),
+        Conv2D(filters=128, kernel_size=4, activation='relu'),
+        MaxPooling2D(),
         Flatten(),
-        Dense(128, activation='relu'),
-        Dense(classes_number, activation='softmax')
+        Dense(units=128, activation='relu'),
+        Dense(units=classes_number, activation='softmax')
     ])
 
     model.compile(
@@ -65,11 +82,11 @@ def train(dataset_path):
         epochs=10)
     
     print(f"========== Training metrics ==========\n" +
-            f"loss: {training_metrics.history['loss']}\n" +
-            f"accuracy: {training_metrics.history['accuracy']}\n" +
+            f"loss: {training_metrics.history['loss'][-1]}\n" +
+            f"accuracy: {training_metrics.history['accuracy'][-1]}\n" +
             f"\n========== Validation metrics ==========\n" +
-            f"val_loss: {training_metrics.history['val_loss']}\n" +
-            f"val_accuracy: {training_metrics.history['val_accuracy']}\n"
+            f"val_loss: {training_metrics.history['val_loss'][-1]}\n" +
+            f"val_accuracy: {training_metrics.history['val_accuracy'][-1]}\n"
     )
 
     plot_learning_curves('Loss', training_metrics.history['loss'], training_metrics.history['val_loss'])
