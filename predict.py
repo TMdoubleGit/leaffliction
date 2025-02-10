@@ -38,7 +38,7 @@ def load_and_preprocess_image(image_path):
 
 
 def predict_image(image_path):
-    model = load_model('./saved_model/leafflication') ######################################################
+    model = load_model('./saved_model/leafflication.keras')
 
     img_array = load_and_preprocess_image(image_path)
     # blurred = preprocess_image(gaussian_blur(image_path))

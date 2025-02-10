@@ -1,7 +1,7 @@
 import sys
 import os
 import tensorflow as tf
-import matplotlib as plt
+import matplotlib.pyplot as plt
 
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Rescaling
@@ -9,7 +9,7 @@ from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Rescal
 # from .augmentation import augment_dataset
 # from .transformation import transform_dataset
 
-def plot_learning_curves(self, name, curves_train, curves_validation):
+def plot_learning_curves(name, curves_train, curves_validation):
     plt.plot(range(len(curves_train)), curves_train, curves_validation)
     plt.xlabel('Epochs')
     plt.ylabel(name)
@@ -62,12 +62,12 @@ def train(dataset_path):
     training_metrics = model.fit(
         train_dataset,
         validation_data=validation_dataset,
-        epochs=1)
+        epochs=10)
     
     print(f"========== Training metrics ==========\n" +
             f"loss: {training_metrics.history['loss']}\n" +
             f"accuracy: {training_metrics.history['accuracy']}\n" +
-            f"\n========== Validation metrics ==========\n", +
+            f"\n========== Validation metrics ==========\n" +
             f"val_loss: {training_metrics.history['val_loss']}\n" +
             f"val_accuracy: {training_metrics.history['val_accuracy']}\n"
     )
@@ -78,7 +78,7 @@ def train(dataset_path):
     # PATH a modifier avant EVALUATION
     if not os.path.exists('./saved_model'):
         os.makedirs('./saved_model')
-    model.save('./saved_model/leafflication')
+    model.save('./saved_model/leafflication.keras')
 
 
 if __name__ == "__main__":
