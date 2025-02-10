@@ -6,10 +6,12 @@ import matplotlib.pyplot as plt
 from plantcv import plantcv as pcv
 import matplotlib
 from rembg import remove
-from skimage.morphology import skeletonize
+import argparse
+
 
 matplotlib.use("tkagg")
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
+
 
 def remove_background_rembg(image):
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -18,22 +20,22 @@ def remove_background_rembg(image):
 
 
 def create_roi_mask(image, mask):
-    roi = pcv.roi.rectangle(img=mask, x=0, y=0, w=image.shape[1], h=image.shape[0])
-    return pcv.roi.filter(mask=mask, roi=roi, roi_type='partial')
+    roi = pcv.roi.rectangle(
+        img=mask, x=0, y=0, w=image.shape[1], h=image.shape[0]
+    )
+    return pcv.roi.filter(mask=mask, roi=roi, roi_type="partial")
 
 
 def overlay_roi(image, mask):
     roi_image = image.copy()
     roi_image[mask != 0] = (0, 255, 0)
-    cv2.rectangle(roi_image, (0, 0), (image.shape[1], image.shape[0]), (255, 0, 0), 5)
+    cv2.rectangle(
+        roi_image, (0, 0), (image.shape[1], image.shape[0]), (255, 0, 0), 5
+    )
     return roi_image
 
 
 def plot_color_histogram(image):
-    """
-    Generate color histogram data for multiple color channels.
-    Returns histogram data and channel names for embedding in the global figure.
-    """
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     hls = cv2.cvtColor(image, cv2.COLOR_BGR2HLS)
 
@@ -56,9 +58,6 @@ def plot_color_histogram(image):
 
 
 def display_transformations(images, titles, histograms):
-    """
-    Display transformations and the color histogram in a single integrated figure.
-    """
     fig, axes = plt.subplots(3, 3, figsize=(15, 10))
     axes = axes.flatten()
 
@@ -88,9 +87,10 @@ def display_transformations(images, titles, histograms):
 
     plt.tight_layout()
     plt.show()
-    
 
-def apply_transformations_to_image(image_path, save_dir=None):
+
+def apply_transformations_to_image(
+        image_path, save_dir=False, transformations=None):
     image, _, _ = pcv.readimage(filename=image_path)
     base_name = os.path.splitext(os.path.basename(image_path))[0]
     transformed_images = []
@@ -101,78 +101,134 @@ def apply_transformations_to_image(image_path, save_dir=None):
 
     image_no_bg = remove_background_rembg(image)
     gray_img = pcv.rgb2gray(rgb_img=image_no_bg)
-    binary_img = pcv.threshold.binary(gray_img=gray_img, threshold=128, object_type="light")
-    gaussian_blur = pcv.gaussian_blur(img=binary_img, ksize=(3, 3))
-    transformed_images.append(gaussian_blur)
-    titles.append("Gaussian Blur")
 
-    white_background = np.ones_like(image) * 255
-    fg_mask = image_no_bg[:, :, 0] > 0
-    image_on_white = np.where(fg_mask[:, :, None], image_no_bg, white_background)
+    if "blur" in transformations:
+        binary_img = pcv.threshold.binary(
+            gray_img=gray_img, threshold=128, object_type="light"
+        )
+        gaussian_blur = pcv.gaussian_blur(img=binary_img, ksize=(3, 3))
+        transformed_images.append(gaussian_blur)
+        titles.append("Gaussian Blur")
 
-    binary_mask = pcv.threshold.binary(gray_img=gray_img, threshold=128, object_type="light")
-    masked_image = cv2.bitwise_and(image_on_white, image_on_white, mask=binary_mask)
+    if "mask" in transformations:
+        white_background = np.ones_like(image) * 255
+        fg_mask = image_no_bg[:, :, 0] > 0
+        image_on_white = np.where(
+            fg_mask[:, :, None], image_no_bg, white_background
+        )
+        binary_mask = pcv.threshold.binary(
+            gray_img=gray_img, threshold=128, object_type="light"
+        )
+        gray_threshold = 80
+        background_mask = np.all(image_on_white > gray_threshold, axis=2)
+        final_mask = np.logical_or(binary_mask == 255, background_mask)
+        colored_mask = np.where(
+            final_mask[:, :, None], white_background, image_on_white
+        )
+        transformed_images.append(colored_mask)
+        titles.append("Mask")
 
-    gray_threshold = 80
-    background_mask = np.all(image_on_white > gray_threshold, axis=2)
-    final_mask = np.logical_or(binary_mask == 255, background_mask)
+    if "roi" in transformations:
+        binary_mask = pcv.threshold.binary(
+            gray_img=gray_img, threshold=128, object_type="light"
+        )
+        filtered_mask = create_roi_mask(image, binary_mask)
+        roi_image = overlay_roi(image, filtered_mask)
+        transformed_images.append(roi_image)
+        titles.append("ROI Objects")
 
-    colored_mask = np.where(final_mask[:, :, None], white_background, image_on_white)
-    transformed_images.append(colored_mask)
-    titles.append("Mask")
+    if "analyze" in transformations:
+        binary_mask = pcv.threshold.binary(
+            gray_img=gray_img, threshold=128, object_type="light"
+        )
+        analysis_image = pcv.analyze.size(img=image, labeled_mask=binary_mask)
+        transformed_images.append(analysis_image)
+        titles.append("Analyze objects")
 
-    filtered_mask = create_roi_mask(image, binary_mask)
-    roi_image = overlay_roi(image, filtered_mask)
-
-    transformed_images.append(roi_image)
-    titles.append("ROI Objects")
-
-    analysis_image = pcv.analyze.size(img=image, labeled_mask=binary_mask)
-    transformed_images.append(analysis_image)
-    titles.append("Analyze objects")
-
-    sift = cv2.SIFT_create()
-    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    keypoints = sift.detect(gray_image, None)
-    keypoints_img = cv2.drawKeypoints(image, keypoints, None, flags=cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-    transformed_images.append(cv2.cvtColor(keypoints_img, cv2.COLOR_BGR2RGB))
-    titles.append("Pseudolandmarks")
+    if "pseudolandmarks" in transformations:
+        sift = cv2.SIFT_create()
+        gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        keypoints = sift.detect(gray_image, None)
+        keypoints_img = cv2.drawKeypoints(
+            image, keypoints, None,
+            flags=cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS
+        )
+        transformed_images.append(
+            cv2.cvtColor(keypoints_img, cv2.COLOR_BGR2RGB))
+        titles.append("Pseudolandmarks")
 
     histograms = plot_color_histogram(image)
 
+    if save_dir is None:
+        images_dict = dict(zip(titles, transformed_images))
+        images_dict = {
+            k: v for k, v in images_dict.items()
+            if k == "Original" or k in transformations
+        }
+        transformed_images = list(images_dict.values())
+        titles = list(images_dict.keys())
+        return transformed_images
+
     if save_dir:
         for img, title in zip(transformed_images, titles):
-            save_path = os.path.join(save_dir, f"{base_name}_{title.replace(' ', '_')}.jpg")
-            cv2.imwrite(save_path, cv2.cvtColor(img, cv2.COLOR_RGB2BGR) if len(img.shape) == 3 else img)
+            save_path = os.path.join(
+                save_dir, f"{base_name}_{title.replace(' ', '_')}.jpg"
+            )
+            cv2.imwrite(
+                save_path,
+                cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+                if len(img.shape) == 3 else img
+            )
     else:
         display_transformations(transformed_images, titles, histograms)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3 or sys.argv[1] == "-h":
-        print("Usage: python transformation.py -src <input_path> [-dest <output_directory>]")
-        print("Arguments:")
-        print("  -src <input_path>      Path to an image or a directory containing images")
-        print("  -dest <output_dir>     (Optional) Directory to save image transformations")
-        sys.exit(0)
+    parser = argparse.ArgumentParser(
+        description="Apply image transformations.")
+    parser.add_argument(
+        "-src", required=True, help="Path to an image or directory.")
+    parser.add_argument(
+        "-dest", help="Optional directory to save images.")
+    parser.add_argument(
+        "--blur", action="store_true", help="Apply Gaussian Blur.")
+    parser.add_argument(
+        "--mask", action="store_true", help="Apply Mask.")
+    parser.add_argument(
+        "--roi", action="store_true", help="Apply ROI transformation.")
+    parser.add_argument(
+        "--analyze", action="store_true", help="Analyze Objects.")
+    parser.add_argument(
+        "--pseudolandmarks", action="store_true", help="Pseudolandmarks."
+    )
 
-    input_path = sys.argv[2]
-    output_dir = None
+    args = parser.parse_args()
+    input_path = args.src
+    if args.dest:
+        output_dir = args.dest
+    else:
+        output_dir = False
+    os.makedirs(output_dir, exist_ok=True) if output_dir else None
 
-    if "-dest" in sys.argv:
-        output_dir = sys.argv[sys.argv.index("-dest") + 1]
-        os.makedirs(output_dir, exist_ok=True)
+    transformations = {
+        key for key, value in vars(args).items()
+        if key in {"blur", "mask", "roi", "analyze", "pseudolandmarks"}
+        and value
+    }
+    if not transformations:
+        transformations = {"blur", "mask", "roi", "analyze", "pseudolandmarks"}
 
     if os.path.isfile(input_path):
-        apply_transformations_to_image(input_path, output_dir)
+        apply_transformations_to_image(input_path, output_dir, transformations)
     elif os.path.isdir(input_path):
         if not output_dir:
-            print("Error: When processing a directory, you must specify a destination directory with -dest.")
+            print("Error: Specify a destination directory with -dest.")
             sys.exit(1)
         for file_name in os.listdir(input_path):
             file_path = os.path.join(input_path, file_name)
-            if os.path.isfile(file_path) and file_path.lower().endswith(('.jpg', '.jpeg', '.png')):
-                apply_transformations_to_image(file_path, output_dir)
+            if file_path.lower().endswith((".jpg", ".jpeg", ".png")):
+                apply_transformations_to_image(
+                    file_path, output_dir, transformations)
     else:
         print(f"Error: Invalid input path {input_path}")
         sys.exit(1)
