@@ -33,21 +33,8 @@ def display_prediction(image_path, predicted_class):
     concatenated_img.show()
 
 
-# def load_and_preprocess_image(image_path):
-#     img = Image.open(image_path).convert('RGB')
-#     # img_array = np.array(img) / 255.0
-#     img_array = np.expand_dims(img, axis=0)
-
-#     ########################3 transformation de l'image ###########################
-
-#     return img_array
-
-
 def predict_image(image_path):
     model = load_model('./saved_model/leafflication.keras')
-    # manage ERROR
-
-    # img_array = load_and_preprocess_image(image_path)
 
     transformed_images = apply_transformations_to_image(image_path, save_dir=None, transformations={"blur", "mask", "roi", "analyze", "pseudolandmarks"})
     
@@ -55,7 +42,6 @@ def predict_image(image_path):
     batch = np.vstack(transformed_images)
     batch = np.expand_dims(batch, axis=0)
     
-    # predictions = model.predict(img_array)
     predictions = model.predict(batch)
 
     avg_prediction = np.mean(predictions, axis=0)  # Moyenne des scores de confiance
@@ -65,12 +51,8 @@ def predict_image(image_path):
     print(avg_prediction)
     print(final_class)
 
-    # class_index = np.argmax(predictions)
-    # confidence = predictions[0][class_index]
-    
     with open("./saved_model/classes_names.pkl", "rb") as fichier:
         classes_names = pickle.load(fichier)
-        # manage ERROR
     
     predicted_class = classes_names[final_class]
     
@@ -92,6 +74,6 @@ if __name__ == "__main__":
 
     try:
         predict(image_path)
-    except FileNotFoundError as e:
+    except Exception as e:
         print(e)
         sys.exit(1)

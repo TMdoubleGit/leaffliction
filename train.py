@@ -106,4 +106,8 @@ if __name__ == "__main__":
 
     # partie ZIP
 
-    train(dataset_path)
+    try:
+        train(dataset_path)
+    except Exception as e:
+        print(e)
+        sys.exit(1)

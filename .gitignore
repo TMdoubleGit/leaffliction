@@ -4,3 +4,4 @@ saved_model/*
 .venv/*
 dataset/
 ./final_directory
+./saved_model/leaffliction.keras
