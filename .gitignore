@@ -3,3 +3,4 @@ saved_model/*
 .venv/
 .venv/*
 dataset/
+./final_directory
