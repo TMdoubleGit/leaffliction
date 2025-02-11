@@ -70,7 +70,7 @@ def train(dataset_path):
     training_metrics = model.fit(
         train_dataset,
         validation_data=validation_dataset,
-        epochs=3)
+        epochs=10)
     
     print(f"========== Training metrics ==========\n" +
             f"loss: {training_metrics.history['loss'][-1]}\n" +

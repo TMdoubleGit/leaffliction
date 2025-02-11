@@ -10,11 +10,9 @@ from tensorflow.keras.models import load_model
 from PIL import Image, ImageDraw, ImageFont
 
 
-def display_prediction(image_path, predicted_class):
-    img_original = Image.open(image_path)
-    img_transformed = Image.open(image_path) # REMPLACER PAR L'IMAGE TRANSFORMEE
-
-    img_transformed = img_transformed.resize(img_original.size)
+def display_prediction(transformed_images, predicted_class):
+    img_original = Image.fromarray(transformed_images[0])
+    img_transformed = Image.fromarray(transformed_images[2])
 
     concatenated_img = Image.new('RGB', (img_original.width + img_transformed.width, img_original.height + 150))
     concatenated_img.paste(img_original, (0, 0))
@@ -34,34 +32,37 @@ def display_prediction(image_path, predicted_class):
 
 
 def predict_image(image_path):
+    predictions = []
     model = load_model('./saved_model/leafflication.keras')
-
-    transformed_images = apply_transformations_to_image(image_path, save_dir=None, transformations={"blur", "mask", "roi", "analyze", "pseudolandmarks"})
-    
-    print(len(transformed_images))
-    batch = np.vstack(transformed_images)
-    batch = np.expand_dims(batch, axis=0)
-    
-    predictions = model.predict(batch)
-
-    avg_prediction = np.mean(predictions, axis=0)  # Moyenne des scores de confiance
-    final_class = np.argmax(avg_prediction)  # Classe avec la plus haute confiance
-
-    print(predictions)
-    print(avg_prediction)
-    print(final_class)
-
     with open("./saved_model/classes_names.pkl", "rb") as fichier:
         classes_names = pickle.load(fichier)
+
+    transformed_images = apply_transformations_to_image(image_path,
+                                                        save_dir=None,
+                                                        transformations={"blur", "mask", "roi", "analyze", "pseudolandmarks"}
+                                                        )
+
+    processed_images = []
+    for img in transformed_images:
+        if len(img.shape) == 2:
+            img = np.stack([img] * 3, axis=-1)
+        processed_images.append(img)
+
+    for img in processed_images:
+        predictions.append(model.predict(np.expand_dims(img, axis=0)))
+
+    avg_prediction = np.mean(predictions, axis=0)
+    final_class = np.argmax(avg_prediction)
     
     predicted_class = classes_names[final_class]
+    print(predicted_class)
     
-    return predicted_class
+    return predicted_class, transformed_images
 
 
 def predict(image_path):
-    predicted_class = predict_image(image_path)
-    # display_prediction(image_path, predicted_class)
+    predicted_class, transformed_images = predict_image(image_path)
+    display_prediction(transformed_images, predicted_class)
     
 
 if __name__ == "__main__":
@@ -71,7 +72,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     image_path = sys.argv[1]
-
+        
     try:
         predict(image_path)
     except Exception as e:

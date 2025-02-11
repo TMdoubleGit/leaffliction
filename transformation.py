@@ -135,7 +135,6 @@ def apply_transformations_to_image(
         hidden_titles.append("mask")
 
     if "roi" in transformations:
-        print('roi')
         binary_mask = pcv.threshold.binary(
             gray_img=gray_img, threshold=128, object_type="light"
         )
