@@ -118,7 +118,7 @@ def augment_dataset(input_directory, output_directory):
         print(f"📢 Augmenting {folder}: Adding {num_to_add} images to reach {max_images}")
 
         images = [os.path.join(folder, f) for f in os.listdir(folder)
-                  if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+                  if f.lower().endswith(('.jpg', '.jpeg', '.png', '.JPG', '.JPEG', '.PNG'))]
 
         generated_images = 0
         while generated_images < num_to_add:

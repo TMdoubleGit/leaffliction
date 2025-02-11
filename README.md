@@ -27,7 +27,11 @@ SOLUTION : OUI FORMAT UNE IMAGE POUR LES 1 + 5 IMAGES TRANSFORMEES
 
 ## TODO :
 - changer crop dans augmentation (pb de taille) ✅
-- probleme avec contrast ❌
+- probleme avec contrast ✅
+- secure les dump et save model
+- faire la partie archivahe ZIP
+- partie predict display image
+- recup final_directory
 
 pour le predict : besoin d'une fonction par transformation
 pour le train : besoin d'une fonction de transformation de dataset

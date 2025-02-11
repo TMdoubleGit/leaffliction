@@ -6,3 +6,4 @@ Pillow==10.0.0
 plantcv==4.2.1
 rembg==2.0.54
 flake8==7.1.1
+pickle5

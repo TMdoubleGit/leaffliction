@@ -8,6 +8,8 @@ import matplotlib
 from rembg import remove
 import argparse
 
+from utils import ft_tqdm
+
 
 matplotlib.use("tkagg")
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
@@ -97,7 +99,7 @@ def apply_transformations_to_image(
     titles = []
 
     transformed_images.append(image)
-    titles.append("Original")
+    titles.append("original")
 
     image_no_bg = remove_background_rembg(image)
     gray_img = pcv.rgb2gray(rgb_img=image_no_bg)
@@ -108,7 +110,7 @@ def apply_transformations_to_image(
         )
         gaussian_blur = pcv.gaussian_blur(img=binary_img, ksize=(3, 3))
         transformed_images.append(gaussian_blur)
-        titles.append("Gaussian Blur")
+        titles.append("blur")
 
     if "mask" in transformations:
         white_background = np.ones_like(image) * 255
@@ -126,16 +128,17 @@ def apply_transformations_to_image(
             final_mask[:, :, None], white_background, image_on_white
         )
         transformed_images.append(colored_mask)
-        titles.append("Mask")
+        titles.append("mask")
 
     if "roi" in transformations:
+        print('roi')
         binary_mask = pcv.threshold.binary(
             gray_img=gray_img, threshold=128, object_type="light"
         )
         filtered_mask = create_roi_mask(image, binary_mask)
         roi_image = overlay_roi(image, filtered_mask)
         transformed_images.append(roi_image)
-        titles.append("ROI Objects")
+        titles.append("roi")
 
     if "analyze" in transformations:
         binary_mask = pcv.threshold.binary(
@@ -143,7 +146,7 @@ def apply_transformations_to_image(
         )
         analysis_image = pcv.analyze.size(img=image, labeled_mask=binary_mask)
         transformed_images.append(analysis_image)
-        titles.append("Analyze objects")
+        titles.append("analyze")
 
     if "pseudolandmarks" in transformations:
         sift = cv2.SIFT_create()
@@ -155,7 +158,7 @@ def apply_transformations_to_image(
         )
         transformed_images.append(
             cv2.cvtColor(keypoints_img, cv2.COLOR_BGR2RGB))
-        titles.append("Pseudolandmarks")
+        titles.append("pseudolandmarks")
 
     histograms = plot_color_histogram(image)
 
@@ -163,7 +166,7 @@ def apply_transformations_to_image(
         images_dict = dict(zip(titles, transformed_images))
         images_dict = {
             k: v for k, v in images_dict.items()
-            if k == "Original" or k in transformations
+            if k == "original" or k in transformations
         }
         transformed_images = list(images_dict.values())
         titles = list(images_dict.keys())
@@ -229,7 +232,7 @@ if __name__ == "__main__":
             print("Error: Specify a destination directory with -dest.")
             sys.exit(1)
         for root, _, files in os.walk(input_path):
-            for file_name in files:
+            for file_name in ft_tqdm(files):
                 file_path = os.path.join(root, file_name)
                 if file_path.lower().endswith((".jpg", ".jpeg", ".png")):
                     apply_transformations_to_image(

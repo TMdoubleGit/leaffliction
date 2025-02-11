@@ -2,6 +2,7 @@ import sys
 import os
 import tensorflow as tf
 import matplotlib.pyplot as plt
+import pickle
 
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Rescaling, Dropout
@@ -43,16 +44,6 @@ def train(dataset_path):
     train_class_names = train_dataset.class_names
     classes_number = len(train_class_names)
 
-    # declaration d'un modele simple (5 couches)
-    # model = Sequential([
-    #     Rescaling(1./255),
-    #     Conv2D(32, (3, 3), activation='relu'),
-    #     MaxPooling2D(2, 2),
-    #     Flatten(),
-    #     Dense(128, activation='relu'),
-    #     Dense(classes_number, activation='softmax')
-    # ])
-
     model = Sequential([
         Rescaling(1./255),
         Conv2D(filters=16, kernel_size=4, activation='relu'),
@@ -79,7 +70,7 @@ def train(dataset_path):
     training_metrics = model.fit(
         train_dataset,
         validation_data=validation_dataset,
-        epochs=10)
+        epochs=3)
     
     print(f"========== Training metrics ==========\n" +
             f"loss: {training_metrics.history['loss'][-1]}\n" +
@@ -92,10 +83,14 @@ def train(dataset_path):
     plot_learning_curves('Loss', training_metrics.history['loss'], training_metrics.history['val_loss'])
     plot_learning_curves('Accuracy', training_metrics.history['accuracy'], training_metrics.history['val_accuracy'])
 
-    # PATH a modifier avant EVALUATION
+
     if not os.path.exists('./saved_model'):
         os.makedirs('./saved_model')
     model.save('./saved_model/leafflication.keras')
+
+    with open("./saved_model/classes_names.pkl", "wb") as fichier:
+        pickle.dump(train_class_names, fichier)
+        # manage ERROR
 
 
 if __name__ == "__main__":
