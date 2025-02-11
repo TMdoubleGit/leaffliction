@@ -95,9 +95,11 @@ def apply_transformations_to_image(
     base_name = os.path.splitext(os.path.basename(image_path))[0]
     transformed_images = []
     titles = []
+    hidden_titles = []
 
     transformed_images.append(image)
     titles.append("Original")
+    hidden_titles.append("original")
 
     image_no_bg = remove_background_rembg(image)
     gray_img = pcv.rgb2gray(rgb_img=image_no_bg)
@@ -109,6 +111,7 @@ def apply_transformations_to_image(
         gaussian_blur = pcv.gaussian_blur(img=binary_img, ksize=(3, 3))
         transformed_images.append(gaussian_blur)
         titles.append("Gaussian Blur")
+        hidden_titles.append("blur")
 
     if "mask" in transformations:
         white_background = np.ones_like(image) * 255
@@ -127,6 +130,7 @@ def apply_transformations_to_image(
         )
         transformed_images.append(colored_mask)
         titles.append("Mask")
+        hidden_titles.append("mask")
 
     if "roi" in transformations:
         binary_mask = pcv.threshold.binary(
@@ -136,6 +140,7 @@ def apply_transformations_to_image(
         roi_image = overlay_roi(image, filtered_mask)
         transformed_images.append(roi_image)
         titles.append("ROI Objects")
+        hidden_titles.append("roi")
 
     if "analyze" in transformations:
         binary_mask = pcv.threshold.binary(
@@ -144,6 +149,7 @@ def apply_transformations_to_image(
         analysis_image = pcv.analyze.size(img=image, labeled_mask=binary_mask)
         transformed_images.append(analysis_image)
         titles.append("Analyze objects")
+        hidden_titles.append("analyze")
 
     if "pseudolandmarks" in transformations:
         sift = cv2.SIFT_create()
@@ -156,17 +162,18 @@ def apply_transformations_to_image(
         transformed_images.append(
             cv2.cvtColor(keypoints_img, cv2.COLOR_BGR2RGB))
         titles.append("Pseudolandmarks")
+        hidden_titles.append("pseudolandmarks")
 
     histograms = plot_color_histogram(image)
 
     if save_dir is None:
-        images_dict = dict(zip(titles, transformed_images))
+        images_dict = dict(zip(hidden_titles, transformed_images))
         images_dict = {
             k: v for k, v in images_dict.items()
             if k == "Original" or k in transformations
         }
         transformed_images = list(images_dict.values())
-        titles = list(images_dict.keys())
+        hidden_titles = list(images_dict.keys())
         return transformed_images
 
     if save_dir:
