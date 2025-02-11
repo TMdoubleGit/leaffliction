@@ -170,9 +170,13 @@ def apply_transformations_to_image(
         return transformed_images
 
     if save_dir:
+        relative_path = os.path.relpath(os.path.dirname(image_path), args.src)
+        output_subdir = os.path.join(save_dir, relative_path)
+        os.makedirs(output_subdir, exist_ok=True)
+
         for img, title in zip(transformed_images, titles):
             save_path = os.path.join(
-                save_dir, f"{base_name}_{title.replace(' ', '_')}.jpg"
+                output_subdir, f"{base_name}_{title.replace(' ', '_')}.jpg"
             )
             cv2.imwrite(
                 save_path,
@@ -224,11 +228,12 @@ if __name__ == "__main__":
         if not output_dir:
             print("Error: Specify a destination directory with -dest.")
             sys.exit(1)
-        for file_name in os.listdir(input_path):
-            file_path = os.path.join(input_path, file_name)
-            if file_path.lower().endswith((".jpg", ".jpeg", ".png")):
-                apply_transformations_to_image(
-                    file_path, output_dir, transformations)
+        for root, _, files in os.walk(input_path):
+            for file_name in files:
+                file_path = os.path.join(root, file_name)
+                if file_path.lower().endswith((".jpg", ".jpeg", ".png")):
+                    apply_transformations_to_image(
+                        file_path, output_dir, transformations)
     else:
         print(f"Error: Invalid input path {input_path}")
         sys.exit(1)
