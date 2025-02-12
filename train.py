@@ -87,9 +87,9 @@ def train(dataset_path):
 
     if not os.path.exists('./saved_model'):
         os.makedirs('./saved_model')
-    model.save('./saved_model/leafflication_small.keras')
+    model.save('./saved_model/leafflication.keras')
 
-    with open("./saved_model/classes_names_small.pkl", "wb") as fichier:
+    with open("./saved_model/classes_names.pkl", "wb") as fichier:
         pickle.dump(train_class_names, fichier)
 
 
