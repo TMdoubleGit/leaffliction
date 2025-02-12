@@ -91,6 +91,14 @@ def display_transformations(images, titles, histograms):
     plt.show()
 
 
+def transform_dataset(input_path):
+    for root, _, files in os.walk(input_path):
+        for file_name in ft_tqdm(files):
+            file_path = os.path.join(root, file_name)
+            if file_path.lower().endswith((".jpg", ".jpeg", ".png")):
+                apply_transformations_to_image(file_path, output_dir, transformations)
+
+
 def apply_transformations_to_image(
         image_path, save_dir=False, transformations=None):
     image, _, _ = pcv.readimage(filename=image_path)
@@ -237,12 +245,7 @@ if __name__ == "__main__":
         if not output_dir:
             print("Error: Specify a destination directory with -dest.")
             sys.exit(1)
-        for root, _, files in os.walk(input_path):
-            for file_name in ft_tqdm(files):
-                file_path = os.path.join(root, file_name)
-                if file_path.lower().endswith((".jpg", ".jpeg", ".png")):
-                    apply_transformations_to_image(
-                        file_path, output_dir, transformations)
+        transform_dataset(input_path)
     else:
         print(f"Error: Invalid input path {input_path}")
         sys.exit(1)

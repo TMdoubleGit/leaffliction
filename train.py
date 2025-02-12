@@ -3,12 +3,13 @@ import os
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import pickle
+import zipfile
 
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Rescaling, Dropout
 
-# from .augmentation import augment_dataset
-# from .transformation import transform_dataset
+from .augmentation import augment_dataset
+from .transformation import transform_dataset
 
 def plot_learning_curves(name, curves_train, curves_validation):
     plt.plot(range(len(curves_train)), curves_train, curves_validation)
@@ -90,7 +91,15 @@ def train(dataset_path):
 
     with open("./saved_model/classes_names.pkl", "wb") as fichier:
         pickle.dump(train_class_names, fichier)
-        # manage ERROR
+
+
+def zip_folders(output_filename, folders):
+    with zipfile.ZipFile(output_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        for folder in folders:
+            for root, _, files in os.walk(folder):
+                for file in files:
+                    file_path = os.path.join(root, file)
+                    zipf.write(file_path, arcname=os.path.relpath(file_path, start=os.path.dirname(folder)))
 
 
 if __name__ == "__main__":
@@ -101,13 +110,13 @@ if __name__ == "__main__":
 
     dataset_path = sys.argv[1]
 
-    # augment_dataset(dataset_path, "dataset_training")
-    # transform_dataset("dataset_training")
-
-    # partie ZIP
-
     try:
+        augment_dataset(dataset_path, "dataset_training")
+        transform_dataset("dataset_training")
+        
         train(dataset_path)
+        
+        zip_folders('archive.zip', ["dataset_training", "saved_model"])
     except Exception as e:
         print(e)
         sys.exit(1)

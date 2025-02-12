@@ -33,6 +33,7 @@ def display_prediction(transformed_images, predicted_class):
 
 def predict_image(image_path):
     predictions = []
+
     model = load_model('./saved_model/leafflication.keras')
     with open("./saved_model/classes_names.pkl", "rb") as fichier:
         classes_names = pickle.load(fichier)
@@ -49,10 +50,13 @@ def predict_image(image_path):
         processed_images.append(img)
 
     for img in processed_images:
-        predictions.append(model.predict(np.expand_dims(img, axis=0)))
+        prediction = model.predict(np.expand_dims(img, axis=0))
+        predictions.append(prediction)
 
     avg_prediction = np.mean(predictions, axis=0)
     final_class = np.argmax(avg_prediction)
+
+    print(f'predictions : {predictions}')
     
     predicted_class = classes_names[final_class]
     print(predicted_class)
@@ -62,7 +66,7 @@ def predict_image(image_path):
 
 def predict(image_path):
     predicted_class, transformed_images = predict_image(image_path)
-    display_prediction(transformed_images, predicted_class)
+    # display_prediction(transformed_images, predicted_class)
     
 
 if __name__ == "__main__":
