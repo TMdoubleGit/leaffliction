@@ -8,8 +8,8 @@ import zipfile
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Rescaling, Dropout
 
-from .augmentation import augment_dataset
-from .transformation import transform_dataset
+from augmentation import augment_dataset
+from transformation import transform_dataset
 
 def plot_learning_curves(name, curves_train, curves_validation):
     plt.plot(range(len(curves_train)), curves_train, curves_validation)
@@ -87,9 +87,9 @@ def train(dataset_path):
 
     if not os.path.exists('./saved_model'):
         os.makedirs('./saved_model')
-    model.save('./saved_model/leafflication.keras')
+    model.save('./saved_model/leafflication_small.keras')
 
-    with open("./saved_model/classes_names.pkl", "wb") as fichier:
+    with open("./saved_model/classes_names_small.pkl", "wb") as fichier:
         pickle.dump(train_class_names, fichier)
 
 
@@ -103,20 +103,22 @@ def zip_folders(output_filename, folders):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
+    if len(sys.argv) != 3:
         print("Error: You must provide the dataset path as an argument.")
-        print("Usage: python train.py <dataset_path>")
+        print("Usage: python train.py <dataset_path> <augmented_transformed_dataset_path>")
         sys.exit(1)
 
     dataset_path = sys.argv[1]
+    output_dir = sys.argv[2]
 
     try:
-        augment_dataset(dataset_path, "dataset_training")
-        transform_dataset("dataset_training")
+        transformations = {"blur", "mask", "roi", "analyze", "pseudolandmarks"}
+        augment_dataset(dataset_path, output_dir)
+        transform_dataset(output_dir, output_dir, transformations)
         
-        train(dataset_path)
-        
-        zip_folders('archive.zip', ["dataset_training", "saved_model"])
+        train(output_dir)
+    
+        # zip_folders('archive.zip', ["final_directory", "augmented_directory", "saved_model"])
     except Exception as e:
         print(e)
         sys.exit(1)

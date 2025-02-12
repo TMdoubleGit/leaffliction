@@ -41,7 +41,8 @@ def predict_image(image_path):
     classes_names = ['Apple_Black_rot', 'Apple_healthy', 'Apple_rust', 'Apple_scab', 'Grape_Black_rot', 'Grape_Esca', 'Grape_healthy', 'Grape_spot']
     transformed_images = apply_transformations_to_image(image_path,
                                                         save_dir=None,
-                                                        transformations={"blur", "mask", "roi", "analyze", "pseudolandmarks"}
+                                                        transformations={"blur", "mask", "roi", "analyze", "pseudolandmarks"},
+                                                        src_dir=None
                                                         )
 
     processed_images = []
@@ -57,7 +58,7 @@ def predict_image(image_path):
     avg_prediction = np.mean(predictions, axis=0)
     final_class = np.argmax(avg_prediction)
 
-    print(f'predictions : {predictions}')
+    # print(f'predictions : {predictions}')
     
     predicted_class = classes_names[final_class]
     print(predicted_class)
@@ -67,7 +68,7 @@ def predict_image(image_path):
 
 def predict(image_path):
     predicted_class, transformed_images = predict_image(image_path)
-    # display_prediction(transformed_images, predicted_class)
+    display_prediction(transformed_images, predicted_class)
     
 
 if __name__ == "__main__":
