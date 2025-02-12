@@ -4,4 +4,6 @@ saved_model/*
 .venv/*
 dataset/
 ./final_directory
+./final_directory/Apple/*
+./final_directory/Grape/*
 ./saved_model/leaffliction.keras

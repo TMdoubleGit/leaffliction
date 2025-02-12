@@ -35,9 +35,10 @@ def predict_image(image_path):
     predictions = []
 
     model = load_model('./saved_model/leafflication.keras')
-    with open("./saved_model/classes_names.pkl", "rb") as fichier:
-        classes_names = pickle.load(fichier)
+    # with open("./saved_model/classes_names.pkl", "rb") as fichier:
+    #     classes_names = pickle.load(fichier)
 
+    classes_names = ['Apple_Black_rot', 'Apple_healthy', 'Apple_rust', 'Apple_scab', 'Grape_Black_rot', 'Grape_Esca', 'Grape_healthy', 'Grape_spot']
     transformed_images = apply_transformations_to_image(image_path,
                                                         save_dir=None,
                                                         transformations={"blur", "mask", "roi", "analyze", "pseudolandmarks"}
