@@ -91,16 +91,16 @@ def display_transformations(images, titles, histograms):
     plt.show()
 
 
-def transform_dataset(input_path):
+def transform_dataset(input_path, output_dir, transformations):
     for root, _, files in os.walk(input_path):
         for file_name in ft_tqdm(files):
             file_path = os.path.join(root, file_name)
             if file_path.lower().endswith((".jpg", ".jpeg", ".png")):
-                apply_transformations_to_image(file_path, output_dir, transformations)
+                apply_transformations_to_image(file_path, output_dir, transformations, input_path)
 
 
 def apply_transformations_to_image(
-        image_path, save_dir=False, transformations=None):
+        image_path, save_dir=False, transformations=None, src_dir=None):
     image, _, _ = pcv.readimage(filename=image_path)
     base_name = os.path.splitext(os.path.basename(image_path))[0]
     transformed_images = []
@@ -186,8 +186,21 @@ def apply_transformations_to_image(
         hidden_titles = list(images_dict.keys())
         return transformed_images
 
-    if save_dir:
-        relative_path = os.path.relpath(os.path.dirname(image_path), args.src)
+    if save_dir and save_dir == src_dir:
+        output_subdir = os.path.dirname(image_path)
+
+        for img, title in zip(transformed_images, titles):
+            save_path = os.path.join(
+                output_subdir, f"{base_name}_{title.replace(' ', '_')}.jpg"
+            )
+            cv2.imwrite(
+                save_path,
+                cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+                if len(img.shape) == 3 else img
+            )
+
+    elif save_dir and save_dir != src_dir:
+        relative_path = os.path.relpath(os.path.dirname(image_path), src_dir)
         output_subdir = os.path.join(save_dir, relative_path)
         os.makedirs(output_subdir, exist_ok=True)
 
@@ -240,12 +253,13 @@ if __name__ == "__main__":
         transformations = {"blur", "mask", "roi", "analyze", "pseudolandmarks"}
 
     if os.path.isfile(input_path):
-        apply_transformations_to_image(input_path, output_dir, transformations)
+        apply_transformations_to_image(input_path, output_dir, transformations, src_dir=args.src)
     elif os.path.isdir(input_path):
         if not output_dir:
             print("Error: Specify a destination directory with -dest.")
             sys.exit(1)
-        transform_dataset(input_path)
+        transform_dataset(input_path, output_dir, transformations)
     else:
         print(f"Error: Invalid input path {input_path}")
         sys.exit(1)
+

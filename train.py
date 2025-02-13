@@ -10,8 +10,8 @@ from tensorflow.keras.layers import (
     Conv2D, MaxPooling2D, Flatten, Dense, Rescaling, Dropout
 )
 
-from .augmentation import augment_dataset
-from .transformation import transform_dataset
+from augmentation import augment_dataset
+from transformation import transform_dataset
 
 
 def plot_learning_curves(name, curves_train, curves_validation):
@@ -116,25 +116,26 @@ def zip_folders(output_filename, folders):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
+    if len(sys.argv) != 3:
         print("Error: You must provide the dataset path as an argument.")
-        print("Usage: python train.py <dataset_path>")
+        print("Usage: python train.py <dataset_path> <augmented_transformed_dataset_path>")
         sys.exit(1)
 
     dataset_path = sys.argv[1]
+    output_dir = sys.argv[2]
 
     try:
         transformations = {"blur", "mask", "roi", "analyze", "pseudolandmarks"}
         augment_dataset(dataset_path,
-                        "dataset_training"
+                        output_dir
                         )
 
-        transform_dataset("dataset_training",
-                          "dataset_training",
+        transform_dataset(output_dir,
+                          output_dir,
                           transformations
                           )
 
-        train(dataset_path)
+        train(output_dir)
 
         zip_folders('archive.zip', ["dataset_training", "saved_model"])
     except Exception as e:

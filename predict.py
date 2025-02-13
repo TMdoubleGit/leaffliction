@@ -62,17 +62,14 @@ def predict_image(image_path):
     avg_prediction = np.mean(predictions, axis=0)
     final_class = np.argmax(avg_prediction)
 
-    print(f'predictions : {predictions}')
-
     predicted_class = classes_names[final_class]
-    print(predicted_class)
 
     return predicted_class, imgs_t
 
 
 def predict(image_path):
     predicted_class, transformed_images = predict_image(image_path)
-    # display_prediction(transformed_images, predicted_class)
+    display_prediction(transformed_images, predicted_class)
 
 
 if __name__ == "__main__":

@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 
 def count_images_in_folders(input_directory, valid_extensions=None):
     """
-    Count the number of images in each subdirectory of the input directory.
-    Returns a dictionary { folder_path : image_count }.
+    Count the number of images in each disease subdirectory of the dataset.
+    Returns a dictionary { folder_name : image_count }.
     """
     if valid_extensions is None:
         valid_extensions = {'.jpg', '.jpeg', '.png', '.JPG', '.JPEG', '.PNG'}
@@ -18,23 +18,31 @@ def count_images_in_folders(input_directory, valid_extensions=None):
     folder_counts = {}
 
     for root, _, files in os.walk(input_directory):
-        image_count = sum(
-            1 for f in files if os.path.splitext(f)[1].strip().lower() in valid_extensions
-        )
-        if image_count > 0:
-            folder_counts[root] = image_count
+        category = os.path.basename(root)
+        parent = os.path.basename(os.path.dirname(root))
+        if root != input_directory and len(files) > 0:
+            full_category = f"{parent}_{category}" if parent != input_directory else category
+            image_count = sum(1 for f in files if os.path.splitext(f)[1].strip().lower() in valid_extensions)
+            if image_count > 0:
+                folder_counts[category] = image_count
 
     return folder_counts
 
 
 def copy_original_images(input_directory, output_directory):
     """
-    Copies all original images from the input directory to the output directory,
-    preserving the folder structure.
+    Copies all original images into a flat structure,
+    keeping only the disease category subdirectories.
     """
     for root, _, files in os.walk(input_directory):
+        category = os.path.basename(root)
         relative_path = os.path.relpath(root, input_directory)
-        output_subdir = os.path.join(output_directory, relative_path)
+        if os.path.dirname(relative_path) == "":
+            continue
+        if root == input_directory:
+            continue
+
+        output_subdir = os.path.join(output_directory, category)
         os.makedirs(output_subdir, exist_ok=True)
 
         for file in files:
@@ -44,10 +52,10 @@ def copy_original_images(input_directory, output_directory):
                 shutil.copy(src, dst)
 
 
-def augment(image_path, save_dir, max_images):
+def augment(image_path, max_images, save_dir, num_to_generate):
     """
-    Augments an image and saves it to `save_dir`, ensuring that the folder
-    does not exceed `max_images`.
+    Augments an image and saves it to save_dir, ensuring that the folder
+    does not exceed max_images.
     """
     image = cv2.imread(image_path)
     if image is None:
@@ -70,14 +78,12 @@ def augment(image_path, save_dir, max_images):
 
     existing_files = set(os.listdir(save_dir))
     num_generated = 0
-
     for suffix, augmented_img in augmentations:
         if len(existing_files) >= max_images:
-            break  # Stop if max limit is reached
-
+            num_generated += 1
+            break
         file_name = f"{base_name}_{suffix}.jpg"
         save_path = os.path.join(save_dir, file_name)
-
         if file_name not in existing_files:
             cv2.imwrite(save_path, augmented_img)
             existing_files.add(file_name)
@@ -88,7 +94,8 @@ def augment(image_path, save_dir, max_images):
 
 def augment_dataset(input_directory, output_directory):
     """
-    Augments an entire dataset and ensures all subdirectories reach the same number of images.
+    Augments an entire dataset and ensures all disease subdirectories reach the same number of images.
+    Handles re-augmentation if needed.
     """
     if not os.path.exists(input_directory):
         raise FileNotFoundError(f"Error: The input directory '{input_directory}' does not exist.")
@@ -105,25 +112,34 @@ def augment_dataset(input_directory, output_directory):
     max_images = max(folder_counts.values())
     print(f"📊 Target size: {max_images} images per folder.")
 
-    for folder, count in folder_counts.items():
-        relative_path = os.path.relpath(folder, input_directory)
-        output_subdir = os.path.join(output_directory, relative_path)
-        os.makedirs(output_subdir, exist_ok=True)
-
-        if count >= max_images:
-            print(f"✅ {folder} already has {count} images. No augmentation needed.")
+    for root, _, files in os.walk(input_directory):
+        category = os.path.basename(root)
+        if root == input_directory or category not in folder_counts:
             continue
 
-        num_to_add = max_images - count
-        print(f"📢 Augmenting {folder}: Adding {num_to_add} images to reach {max_images}")
+        output_subdir = os.path.join(output_directory, category)
+        os.makedirs(output_subdir, exist_ok=True)
 
-        images = [os.path.join(folder, f) for f in os.listdir(folder)
-                  if f.lower().endswith(('.jpg', '.jpeg', '.png', '.JPG', '.JPEG', '.PNG'))]
+        if folder_counts[category] >= max_images:
+            print(f"✅ {category} already has {folder_counts[category]} images. No augmentation needed.")
+            continue
+
+        num_to_add = max_images - folder_counts[category]
+        print(f"📢 Augmenting {category}: Adding {num_to_add} images to reach {max_images}")
+
+        images = [os.path.join(output_subdir, f) for f in os.listdir(output_subdir)
+                  if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+        if num_to_add > 6 * len(images):
+            print(f"🔄 Re-augmenting in {category} because it needs {num_to_add} images but has only {len(images)} originals.")
 
         generated_images = 0
         while generated_images < num_to_add:
             img_path = random.choice(images)
-            generated_images += augment(img_path, save_dir=output_subdir, max_images=max_images)
+            if num_to_add > 6 * len(images):
+                images = [os.path.join(output_subdir, f) for f in os.listdir(output_subdir)
+                          if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+
+            generated_images += augment(img_path, max_images, save_dir=output_subdir, num_to_generate=num_to_add - generated_images)
 
     print("✅ Dataset successfully balanced!")
 
@@ -142,3 +158,4 @@ if __name__ == "__main__":
     else:
         print(f"Error: Invalid input path {input_path}")
         sys.exit(1)
+
