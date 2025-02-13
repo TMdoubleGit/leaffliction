@@ -188,7 +188,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     input_path = args.src
-    if os.path.isdir(input_path) and args.dest: 
+    if os.path.isdir(input_path) and args.dest:
         output_dir = args.dest
     else:
         output_dir = None
