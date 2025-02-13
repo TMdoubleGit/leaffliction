@@ -89,9 +89,11 @@ def augment(image_path, max_images, save_dir, num_to_generate):
         fig, axes = plt.subplots(2, 3, figsize=(12, 8))
         axes = axes.flatten()
 
-        for ax, (title, augmented_img) in zip(axes, augmentations):
+        for ax, (suffix, augmented_img) in zip(axes, augmentations):
+            file_name = f"{image_path}_{suffix}.jpg"
+            cv2.imwrite(file_name, augmented_img)
             ax.imshow(cv2.cvtColor(augmented_img, cv2.COLOR_BGR2RGB))
-            ax.set_title(title)
+            ax.set_title(suffix)
             ax.axis("off")
 
         plt.tight_layout()
@@ -145,8 +147,8 @@ def augment_dataset(input_directory, output_directory=None):
         os.makedirs(output_subdir, exist_ok=True)
 
         if folder_counts[category] >= max_images:
-            print(f"✅ {category} already has\
-             {folder_counts[category]} images. No augmentation needed.")
+            print(f"✅ {category} already has" +
+             f"{folder_counts[category]} images. No augmentation needed.")
             continue
 
         to_add = max_images - folder_counts[category]
@@ -157,8 +159,8 @@ def augment_dataset(input_directory, output_directory=None):
                   in os.listdir(output_subdir)
                   if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
         if to_add > 6 * len(images):
-            print(f"🔄 Re-augmenting in {category} \
-                   because it needs {to_add} images" +
+            print(f"🔄 Re-augmenting in {category}" +
+                  f"because it needs {to_add} images" +
                   f" but has only {len(images)} originals.")
 
         generated_images = 0

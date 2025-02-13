@@ -14,11 +14,33 @@ from augmentation import augment_dataset
 from transformation import transform_dataset
 
 
-def plot_learning_curves(name, curves_train, curves_validation):
-    plt.plot(range(len(curves_train)), curves_train, curves_validation)
-    plt.xlabel('Epochs')
-    plt.ylabel(name)
-    plt.show()
+def plot_learning_curves(training_metrics):
+    """
+    Plot training & validation loss and accuracy side by side.
+    """
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+    axes[0].plot(training_metrics.history["loss"],
+                 label="Train Loss", color="red", linestyle="-")
+    axes[0].plot(training_metrics.history["val_loss"],
+                 label="Validation Loss", color="red", linestyle="--")
+    axes[0].set_xlabel("Epochs")
+    axes[0].set_ylabel("Loss")
+    axes[0].set_title("Training & Validation Loss")
+    axes[0].legend()
+    axes[0].grid(True)
+
+    axes[1].plot(training_metrics.history["accuracy"],
+                 label="Train Accuracy", color="blue", linestyle="-")
+    axes[1].plot(training_metrics.history["val_accuracy"],
+                 label="Validation Accuracy", color="blue", linestyle="--")
+    axes[1].set_xlabel("Epochs")
+    axes[1].set_ylabel("Accuracy")
+    axes[1].set_title("Training & Validation Accuracy")
+    axes[1].legend()
+    axes[1].grid(True)
+
+    plt.tight_layout()
     plt.show()
 
 
@@ -83,14 +105,7 @@ def train(dataset_path):
     val_accuracy: {training_metrics.history['val_accuracy'][-1]}
     """)
 
-    plot_learning_curves('Loss',
-                         training_metrics.history['loss'],
-                         training_metrics.history['val_loss']
-                         )
-    plot_learning_curves('Accuracy',
-                         training_metrics.history['accuracy'],
-                         training_metrics.history['val_accuracy']
-                         )
+    plot_learning_curves(training_metrics)
 
     if not os.path.exists('./saved_model'):
         os.makedirs('./saved_model')
@@ -137,7 +152,7 @@ if __name__ == "__main__":
 
         train(output_dir)
 
-        zip_folders('archive.zip', ["dataset_training", "saved_model"])
+        zip_folders('archive.zip', [output_dir, "saved_model"])
     except Exception as e:
         print(e)
         sys.exit(1)

@@ -5,7 +5,7 @@ import random
 
 def create_small_dataset(original_dataset: str,
                          small_dataset: str,
-                         total_images: int = 500,
+                         total_images: int = 100,
                          seed: int = None):
     if seed is not None:
         random.seed(seed)
@@ -28,8 +28,8 @@ def create_small_dataset(original_dataset: str,
         os.makedirs(os.path.dirname(target_path), exist_ok=True)
         shutil.copy(img_path, target_path)
 
-    print(f"Small dataset generated following this path \
-          {small_dataset} containing {len(selected_images)} images.")
+    print("Small dataset generated following this path" +
+          f"{small_dataset} containing {len(selected_images)} images.")
 
 
 dataset_original = "./dataset"
