@@ -10,3 +10,6 @@ final_directory/
 processed_dataset/
 ./processed_dataset/Apple/*
 ./processed_dataset/Grape/*
+augmented_dataset/
+./augmented_dataset/Apple/*
+./augmented_dataset/Grape/*
