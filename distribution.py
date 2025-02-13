@@ -41,10 +41,14 @@ def analyze_plant_dataset(dataset_path):
     sorted_categories = sorted(
         category_counts.items(), key=lambda x: x[1], reverse=True
     )
+    
     labels = [item[0] for item in sorted_categories]
     counts = [item[1] for item in sorted_categories]
 
     total_images = sum(counts)
+    if not total_images:
+        print(f"No images found in dataset subdirectories")
+        sys.exit(1)
     sizes = [count / total_images * 100 for count in counts]
 
     color_map = plt.cm.tab20(np.linspace(0, 1, len(labels)))

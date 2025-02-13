@@ -6,10 +6,13 @@ import pickle
 import zipfile
 
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Rescaling, Dropout
+from tensorflow.keras.layers import (
+    Conv2D, MaxPooling2D, Flatten, Dense, Rescaling, Dropout
+)
 
 from .augmentation import augment_dataset
 from .transformation import transform_dataset
+
 
 def plot_learning_curves(name, curves_train, curves_validation):
     plt.plot(range(len(curves_train)), curves_train, curves_validation)
@@ -18,12 +21,12 @@ def plot_learning_curves(name, curves_train, curves_validation):
     plt.show()
     plt.show()
 
+
 def train(dataset_path):
 
-    # generer la data de training
     train_dataset = tf.keras.utils.image_dataset_from_directory(
         dataset_path,
-        labels='inferred',  # label par sous dossiers (8)
+        labels='inferred',
         label_mode='categorical',
         batch_size=32,
         validation_split=0.2,
@@ -31,7 +34,6 @@ def train(dataset_path):
         seed=42,
     )
 
-    # generer la data de validation
     validation_dataset = tf.keras.utils.image_dataset_from_directory(
         dataset_path,
         labels='inferred',
@@ -67,23 +69,28 @@ def train(dataset_path):
         loss='categorical_crossentropy',
         metrics=['accuracy'])
 
-
     training_metrics = model.fit(
         train_dataset,
         validation_data=validation_dataset,
         epochs=10)
-    
-    print(f"========== Training metrics ==========\n" +
-            f"loss: {training_metrics.history['loss'][-1]}\n" +
-            f"accuracy: {training_metrics.history['accuracy'][-1]}\n" +
-            f"\n========== Validation metrics ==========\n" +
-            f"val_loss: {training_metrics.history['val_loss'][-1]}\n" +
-            f"val_accuracy: {training_metrics.history['val_accuracy'][-1]}\n"
-    )
 
-    plot_learning_curves('Loss', training_metrics.history['loss'], training_metrics.history['val_loss'])
-    plot_learning_curves('Accuracy', training_metrics.history['accuracy'], training_metrics.history['val_accuracy'])
+    print(f"""========== Training metrics ==========
+    loss: {training_metrics.history['loss'][-1]}
+    accuracy: {training_metrics.history['accuracy'][-1]}
 
+    ========== Validation metrics ==========
+    val_loss: {training_metrics.history['val_loss'][-1]}
+    val_accuracy: {training_metrics.history['val_accuracy'][-1]}
+    """)
+
+    plot_learning_curves('Loss',
+                         training_metrics.history['loss'],
+                         training_metrics.history['val_loss']
+                         )
+    plot_learning_curves('Accuracy',
+                         training_metrics.history['accuracy'],
+                         training_metrics.history['val_accuracy']
+                         )
 
     if not os.path.exists('./saved_model'):
         os.makedirs('./saved_model')
@@ -99,7 +106,13 @@ def zip_folders(output_filename, folders):
             for root, _, files in os.walk(folder):
                 for file in files:
                     file_path = os.path.join(root, file)
-                    zipf.write(file_path, arcname=os.path.relpath(file_path, start=os.path.dirname(folder)))
+                    zipf.write(file_path,
+                               arcname=os.path.relpath(file_path,
+                                                       start=os.path.dirname(
+                                                           folder
+                                                           )
+                                                       )
+                               )
 
 
 if __name__ == "__main__":
@@ -111,11 +124,18 @@ if __name__ == "__main__":
     dataset_path = sys.argv[1]
 
     try:
-        augment_dataset(dataset_path, "dataset_training")
-        transform_dataset("dataset_training")
-        
+        transformations = {"blur", "mask", "roi", "analyze", "pseudolandmarks"}
+        augment_dataset(dataset_path,
+                        "dataset_training"
+                        )
+
+        transform_dataset("dataset_training",
+                          "dataset_training",
+                          transformations
+                          )
+
         train(dataset_path)
-        
+
         zip_folders('archive.zip', ["dataset_training", "saved_model"])
     except Exception as e:
         print(e)
