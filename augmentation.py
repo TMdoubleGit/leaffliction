@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 import random
 import shutil
+import argparse
 import matplotlib.pyplot as plt
 
 
@@ -19,10 +20,10 @@ def count_images_in_folders(input_directory, valid_extensions=None):
 
     for root, _, files in os.walk(input_directory):
         category = os.path.basename(root)
-        parent = os.path.basename(os.path.dirname(root))
         if root != input_directory and len(files) > 0:
-            full_category = f"{parent}_{category}" if parent != input_directory else category
-            image_count = sum(1 for f in files if os.path.splitext(f)[1].strip().lower() in valid_extensions)
+            image_count = sum(
+                1 for f in files
+                if os.path.splitext(f)[1].strip().lower() in valid_extensions)
             if image_count > 0:
                 folder_counts[category] = image_count
 
@@ -48,7 +49,8 @@ def copy_original_images(input_directory, output_directory):
         for file in files:
             if file.lower().endswith(('.jpg', '.jpeg', '.png')):
                 src = os.path.join(root, file)
-                dst = os.path.join(output_subdir, f"{os.path.splitext(file)[0]}_Original.jpg")
+                dst = os.path.join(output_subdir,
+                                   f"{os.path.splitext(file)[0]}_Original.jpg")
                 shutil.copy(src, dst)
 
 
@@ -70,35 +72,57 @@ def augment(image_path, max_images, save_dir, num_to_generate):
         ("Contrast", cv2.convertScaleAbs(image, alpha=2, beta=0)),
         ("Skew", cv2.warpAffine(image, cv2.getAffineTransform(
             np.float32([[0, 0], [image.shape[1], 0], [0, image.shape[0]]]),
-            np.float32([[0, 0], [image.shape[1] * 0.8, image.shape[0] * 0.2], [image.shape[1] * 0.2, image.shape[0]]])
+            np.float32([[0, 0], [image.shape[1] * 0.8,
+                        image.shape[0] * 0.2],
+                        [image.shape[1] * 0.2, image.shape[0]]])
         ), (image.shape[1], image.shape[0]))),
-        ("Shear", cv2.warpAffine(image, np.array([[1, 0.2, 0], [0.2, 1, 0]], dtype=float), (image.shape[1], image.shape[0]))),
+        ("Shear", cv2.warpAffine(image, np.array([[1, 0.2, 0], [0.2, 1, 0]],
+                                                 dtype=float),
+                                                (image.shape[1],
+                                                 image.shape[0]))),
         ("Blur", cv2.GaussianBlur(image, (7, 7), 0))
     ]
 
-    existing_files = set(os.listdir(save_dir))
     num_generated = 0
-    for suffix, augmented_img in augmentations:
-        if len(existing_files) >= max_images:
-            num_generated += 1
-            break
-        file_name = f"{base_name}_{suffix}.jpg"
-        save_path = os.path.join(save_dir, file_name)
-        if file_name not in existing_files:
-            cv2.imwrite(save_path, augmented_img)
-            existing_files.add(file_name)
-            num_generated += 1
+
+    if save_dir is None:
+        fig, axes = plt.subplots(2, 3, figsize=(12, 8))
+        axes = axes.flatten()
+
+        for ax, (title, augmented_img) in zip(axes, augmentations):
+            ax.imshow(cv2.cvtColor(augmented_img, cv2.COLOR_BGR2RGB))
+            ax.set_title(title)
+            ax.axis("off")
+
+        plt.tight_layout()
+        plt.show()
+
+    else:
+        existing_files = set(os.listdir(save_dir))
+        for suffix, augmented_img in augmentations:
+            if len(existing_files) >= max_images:
+                num_generated += 1
+                break
+            file_name = f"{base_name}_{suffix}.jpg"
+            save_path = os.path.join(save_dir, file_name)
+            if file_name not in existing_files:
+                cv2.imwrite(save_path, augmented_img)
+                existing_files.add(file_name)
+                num_generated += 1
 
     return num_generated
 
 
-def augment_dataset(input_directory, output_directory):
+def augment_dataset(input_directory, output_directory=None):
     """
-    Augments an entire dataset and ensures all disease subdirectories reach the same number of images.
+    Augments an entire dataset and ensures all
+    disease subdirectories reach the same number of images.
     Handles re-augmentation if needed.
     """
     if not os.path.exists(input_directory):
-        raise FileNotFoundError(f"Error: The input directory '{input_directory}' does not exist.")
+        raise FileNotFoundError(
+                f"Error: The input directory\
+                 '{input_directory}' does not exist.")
 
     print("📂 Copying original images to augmented dataset...")
     copy_original_images(input_directory, output_directory)
@@ -121,41 +145,64 @@ def augment_dataset(input_directory, output_directory):
         os.makedirs(output_subdir, exist_ok=True)
 
         if folder_counts[category] >= max_images:
-            print(f"✅ {category} already has {folder_counts[category]} images. No augmentation needed.")
+            print(f"✅ {category} already has\
+             {folder_counts[category]} images. No augmentation needed.")
             continue
 
-        num_to_add = max_images - folder_counts[category]
-        print(f"📢 Augmenting {category}: Adding {num_to_add} images to reach {max_images}")
+        to_add = max_images - folder_counts[category]
+        print(f"📢 Augmenting {category}" +
+              f"Adding {to_add} images to reach {max_images}")
 
-        images = [os.path.join(output_subdir, f) for f in os.listdir(output_subdir)
+        images = [os.path.join(output_subdir, f) for f
+                  in os.listdir(output_subdir)
                   if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
-        if num_to_add > 6 * len(images):
-            print(f"🔄 Re-augmenting in {category} because it needs {num_to_add} images but has only {len(images)} originals.")
+        if to_add > 6 * len(images):
+            print(f"🔄 Re-augmenting in {category} \
+                   because it needs {to_add} images" +
+                  f" but has only {len(images)} originals.")
 
         generated_images = 0
-        while generated_images < num_to_add:
+        while generated_images < to_add:
             img_path = random.choice(images)
-            if num_to_add > 6 * len(images):
-                images = [os.path.join(output_subdir, f) for f in os.listdir(output_subdir)
+            if to_add > 6 * len(images):
+                images = [os.path.join(output_subdir, f)
+                          for f in os.listdir(output_subdir)
                           if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
 
-            generated_images += augment(img_path, max_images, save_dir=output_subdir, num_to_generate=num_to_add - generated_images)
+            generated_images += augment(
+                                        img_path, max_images,
+                                        save_dir=output_subdir,
+                                        num_to_generate=to_add-generated_images
+                                        )
 
     print("✅ Dataset successfully balanced!")
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        print("Error: You must provide both an input and output directory.")
-        print("Usage: python augmentation.py <input_directory> <output_directory>")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(
+        description="Apply image augmentations.")
+    parser.add_argument(
+        "-src", required=True, help="Path to an image or directory.")
+    parser.add_argument(
+        "-dest", help="Optional directory to save images.")
 
-    input_path = sys.argv[1]
-    output_dir = sys.argv[2]
+    args = parser.parse_args()
+    input_path = args.src
+    if os.path.isdir(input_path) and args.dest: 
+        output_dir = args.dest
+    else:
+        output_dir = None
+
+    os.makedirs(output_dir, exist_ok=True) if output_dir else None
 
     if os.path.isdir(input_path):
+        if not output_dir:
+            print("Error: Specify a destination directory with -dest.")
+            sys.exit(1)
         augment_dataset(input_path, output_dir)
+    elif os.path.isfile(input_path):
+        augment(input_path, max_images=6, save_dir=None, num_to_generate=6)
+
     else:
         print(f"Error: Invalid input path {input_path}")
         sys.exit(1)
-
