@@ -1,11 +1,21 @@
 import sys
 import numpy as np
 import pickle
+import os
+import logging
+import absl.logging
 
 from transformation import apply_transformations_to_image
 
 from tensorflow.keras.models import load_model
 from PIL import Image, ImageDraw, ImageFont
+
+absl.logging.set_verbosity(absl.logging.ERROR)
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
+logging.getLogger("absl").setLevel(logging.ERROR)
 
 
 def display_prediction(transformed_images, predicted_class):
