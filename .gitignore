@@ -3,7 +3,10 @@ saved_model/*
 .venv/
 .venv/*
 dataset/
-./final_directory
+final_directory/
 ./final_directory/Apple/*
 ./final_directory/Grape/*
 ./saved_model/leaffliction.keras
+processed_dataset/
+./processed_dataset/Apple/*
+./processed_dataset/Grape/*
