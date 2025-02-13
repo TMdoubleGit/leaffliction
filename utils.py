@@ -1,5 +1,6 @@
 import os
 
+
 def get_terminal_size():
     """Permet d'obtenir la taille du terminal"""
     try:
@@ -8,6 +9,7 @@ def get_terminal_size():
     except OSError:
         print(OSError)
         return None
+
 
 def ft_tqdm(lst: range):
     """Recoit une liste en argument et affiche une barre

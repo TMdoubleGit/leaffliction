@@ -96,7 +96,10 @@ def transform_dataset(input_path, output_dir, transformations):
         for file_name in ft_tqdm(files):
             file_path = os.path.join(root, file_name)
             if file_path.lower().endswith((".jpg", ".jpeg", ".png")):
-                apply_transformations_to_image(file_path, output_dir, transformations, input_path)
+                apply_transformations_to_image(file_path,
+                                               output_dir,
+                                               transformations,
+                                               input_path)
 
 
 def apply_transformations_to_image(
@@ -253,7 +256,10 @@ if __name__ == "__main__":
         transformations = {"blur", "mask", "roi", "analyze", "pseudolandmarks"}
 
     if os.path.isfile(input_path):
-        apply_transformations_to_image(input_path, output_dir, transformations, src_dir=args.src)
+        apply_transformations_to_image(input_path,
+                                       output_dir,
+                                       transformations,
+                                       src_dir=args.src)
     elif os.path.isdir(input_path):
         if not output_dir:
             print("Error: Specify a destination directory with -dest.")
@@ -262,4 +268,3 @@ if __name__ == "__main__":
     else:
         print(f"Error: Invalid input path {input_path}")
         sys.exit(1)
-

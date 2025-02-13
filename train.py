@@ -118,7 +118,7 @@ def zip_folders(output_filename, folders):
 if __name__ == "__main__":
     if len(sys.argv) != 3:
         print("Error: You must provide the dataset path as an argument.")
-        print("Usage: python train.py <dataset_path> <augmented_transformed_dataset_path>")
+        print("Usage: python train.py <dataset_path> <modified_dataset_path>")
         sys.exit(1)
 
     dataset_path = sys.argv[1]

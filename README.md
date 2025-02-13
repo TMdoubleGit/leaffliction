@@ -32,6 +32,7 @@ SOLUTION : OUI FORMAT UNE IMAGE POUR LES 1 + 5 IMAGES TRANSFORMEES
 - faire la partie archivahe ZIP ✅
 - partie predict display image ✅
 - recup final_directory
+- flake8 small dataset ❌
 
 pour le predict : besoin d'une fonction par transformation
 pour le train : besoin d'une fonction de transformation de dataset

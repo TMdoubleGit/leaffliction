@@ -1,38 +1,36 @@
 import os
 import shutil
 import random
-from pathlib import Path
 
-def create_small_dataset(original_dataset: str, small_dataset: str, total_images: int = 500, seed: int = None):
-    """
-    Génère un dataset réduit avec la même structure en sélectionnant aléatoirement `total_images`.
-    
-    :param original_dataset: Chemin du dataset original.
-    :param small_dataset: Chemin du dataset réduit.
-    :param total_images: Nombre total d'images à sélectionner.
-    :param seed: Seed pour la reproductibilité.
-    """
+
+def create_small_dataset(original_dataset: str,
+                         small_dataset: str,
+                         total_images: int = 500,
+                         seed: int = None):
     if seed is not None:
         random.seed(seed)
-    
+
     if not os.path.exists(small_dataset):
         os.makedirs(small_dataset, exist_ok=True)
-    
+
     all_images = []
     for root, _, files in os.walk(original_dataset):
         for file in files:
             if file.lower().endswith((".jpg", ".png", ".jpeg")):
                 all_images.append(os.path.join(root, file))
-    
-    selected_images = random.sample(all_images, min(total_images, len(all_images)))
-    
+
+    selected_images = random.sample(all_images,
+                                    min(total_images, len(all_images)))
+
     for img_path in selected_images:
         relative_path = os.path.relpath(img_path, original_dataset)
         target_path = os.path.join(small_dataset, relative_path)
         os.makedirs(os.path.dirname(target_path), exist_ok=True)
         shutil.copy(img_path, target_path)
-    
-    print(f"Small dataset generated following this path {small_dataset} containing {len(selected_images)} images.")
+
+    print(f"Small dataset generated following this path \
+          {small_dataset} containing {len(selected_images)} images.")
+
 
 dataset_original = "./dataset"
 dataset_reduit = "./small_dataset"
