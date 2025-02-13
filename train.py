@@ -96,13 +96,14 @@ def train(dataset_path):
         validation_data=validation_dataset,
         epochs=10)
 
-    print(f"""========== Training metrics ==========
-    loss: {training_metrics.history['loss'][-1]}
-    accuracy: {training_metrics.history['accuracy'][-1]}
+    print(f"""========== Training metrics ==========\n
+    loss: {training_metrics.history['loss'][-1]:.3f}
+    accuracy: {training_metrics.history['accuracy'][-1]:.3f}\n
+    """)
 
-    ========== Validation metrics ==========
-    val_loss: {training_metrics.history['val_loss'][-1]}
-    val_accuracy: {training_metrics.history['val_accuracy'][-1]}
+    print(f"""========== Validation metrics ==========\n
+    val_loss: {training_metrics.history['val_loss'][-1]:.3f}
+    val_accuracy: {training_metrics.history['val_accuracy'][-1]:.3f}\n
     """)
 
     plot_learning_curves(training_metrics)

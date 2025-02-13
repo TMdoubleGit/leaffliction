@@ -148,7 +148,7 @@ def augment_dataset(input_directory, output_directory=None):
 
         if folder_counts[category] >= max_images:
             print(f"✅ {category} already has" +
-             f"{folder_counts[category]} images. No augmentation needed.")
+                  f"{folder_counts[category]} images. No augmentation needed.")
             continue
 
         to_add = max_images - folder_counts[category]
