@@ -42,9 +42,7 @@ predict:
 
 clean:
 
-
 fclean: clean
 	@rm -rf .venv/ .venv/bin/ .venv/include/ .venv/lib/ .venv/lib64 .venv/pyvenv.cfg .venv/share/
-	@rm -rf ./data
 
 phony: install freeze process train predict

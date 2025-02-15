@@ -1,46 +1,77 @@
-# leaffliction
+# Leaf Affliction Detection
 
+This project is designed to detect and classify plant leaf diseases using deep learning models. It includes data augmentation, transformation, and visualization tools to enhance model training and prediction accuracy.
 
-## Taille dataset :
+## Features
 
-apple_black_rot     620     ->      1640
-apple_healthy        1640  
-apple_rust          275     ->      1640
-apple_scab          629     ->      1640
+- **Data Augmentation**: Enhance dataset with various image transformations.
+- **Model Training**: Train a convolutional neural network to classify leaf diseases.
+- **Prediction**: Predict the disease class of a given leaf image.
+- **Visualization**: Plot learning curves and dataset distribution.
 
-grape_black_rot     1178     ->      1640
-grape_esca          1382     ->      1640
-grape_healthy       422      ->      1640
-grape_spot          1075     ->      1640
+## Setup
 
-## Question ?
+1. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/jguigli/leaffliction.git
+   cd leaffliction
+   ```
 
-Pour augmentation.py, est ce que les dataset doivent etre parfaitement equilibre ?
-Est ce qu'il faut equilibrees les apples et les grapes par rapport au sous dossier qui a le + d'images OU il les equilibres par rapport a leur categorie 
-(nb images max d'apple pour les apples et nb images max de grapes pour les grapes) ?
-SOLUTION : 1640 pour tous
+2. **Download Dataset**:
+   ```bash
+   ./dl_dataset.sh
+   ```
 
-Pour transformation.py, est ce que l'extraction des characteristiques a vraiment une utilite pour la correction ?
-Est ce que la transformation est faite pour toutes les images originales + celles augmentees ?
-SOLUTION : OUI FORMAT UNE IMAGE POUR LES 1 + 5 IMAGES TRANSFORMEES
+3. **Set Up Virtual Environment**:
+   ```bash
+   make install
+   ```
 
+## Usage
 
-## TODO :
-- changer crop dans augmentation (pb de taille) ✅
-- probleme avec contrast ✅
-- secure les dump et save model ✅
-- faire la partie archivahe ZIP ✅
-- partie predict display image ✅
-- recup final_directory
-- flake8 small dataset ❌
+- **Train the Model**:
+  ```bash
+  make train arg="<dataset_path> <modified_dataset_path>"
+  ```
 
-pour le predict : besoin d'une fonction par transformation
-pour le train : besoin d'une fonction de transformation de dataset
+- **Augment Image**:
+  ```bash
+  make augmentation arg="-src <source_file>"
+  ```
 
+- **Augment Dataset**:
+  ```bash
+  make augmentation arg="-src <source_directory> -dest <destination_directory>"
+  ```
 
-## A retourner dans le .zip : 
+- **Transform Image**:
+  ```bash
+  make transformation arg="-src <source_file>"
+  ```
 
-- augmented_directory (part2)
-- dataset 400 train / 100 validation (part 4)
-- saved_model (part4)
-- increased/modified images (part4)
+- **Transform Dataset**:
+  ```bash
+  make transformation arg="-src <source_directory> -dest <destination_directory>"
+  ```
+
+- **Predict Image**:
+  ```bash
+  make predict arg="<image_path>"
+  ```
+
+- **Analyze Dataset Distribution**:
+  ```bash
+  make distribution arg="<dataset_path>"
+  ```
+
+## Clean Up
+
+- **Remove Virtual Environment**:
+  ```bash
+  make fclean
+  ```
+
+## Notes
+
+- Ensure all dependencies are listed in `requirements.txt`.
+- Adjust paths and arguments as needed for your specific setup.
